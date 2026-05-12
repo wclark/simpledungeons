@@ -1,5 +1,7 @@
 # Gradle / Java
 .gradle/
+gradle-user-home/
+.gradle-user-home/
 build/
 out/
 target/
@@ -8,6 +10,8 @@ target/
 # Minecraft run directories
 run/
 runs/
+logs/
+crash-reports/
 
 # IDE files
 .idea/

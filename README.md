@@ -6,8 +6,11 @@ Simple Dungeons is a Minecraft mod concept focused on adding three memorable dun
 
 - Repository: `simpledungeons`
 - Mod name: `Simple Dungeons`
-- Suggested mod id: `simpledungeons`
-- Current status: planning scaffold
+- Mod id: `simpledungeons`
+- Minecraft: `26.1.2`
+- Mod loader: NeoForge `26.1.2.45-beta`
+- Java: `25`
+- Current status: NeoForge project scaffold
 
 ## Dungeon Concepts
 
@@ -25,16 +28,26 @@ An underground dungeon that always generates inside a cave. The surrounding cave
 
 ## Initial Roadmap
 
-1. Choose Minecraft version and mod loader.
-2. Add the base mod project scaffold.
-3. Define structure generation rules for all three dungeon types.
-4. Build placeholder structure templates and loot tables.
-5. Add biome, height, spacing, and rarity configuration.
-6. Iterate on dungeon layouts, hazards, rewards, and polish.
+1. Define structure generation rules for all three dungeon types.
+2. Build placeholder structure templates and loot tables.
+3. Add biome, height, spacing, and rarity configuration.
+4. Wire generation into NeoForge worldgen.
+5. Iterate on dungeon layouts, hazards, rewards, and polish.
 
-## Open Setup Decisions
+## Development
 
-- Minecraft version
-- Mod loader: Fabric, Forge, or NeoForge
-- License
-- GitHub repository visibility
+Import this folder as a Gradle project in Eclipse or IntelliJ IDEA.
+
+Useful commands:
+
+```powershell
+.\gradlew.bat build
+.\gradlew.bat runClient
+.\gradlew.bat clientData
+```
+
+The built mod jar appears in `build/libs`.
+
+## Notes
+
+The loader choice follows the existing Simple Spells setup, which uses NeoForge. Minecraft `26.1.2` is the latest stable Java Edition release reported by Mojang's official version manifest.

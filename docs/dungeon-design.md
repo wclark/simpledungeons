@@ -71,7 +71,7 @@ This document captures the first design pass for Simple Dungeons.
 
 ## Implementation Notes To Resolve
 
-- Pick the mod loader before creating source files.
+- Target Minecraft `26.1.2` with NeoForge because the existing Simple Spells project uses NeoForge.
 - Decide whether structures should use jigsaw pieces, static NBT templates, or a hybrid.
 - Define rarity, spacing, biome tags, and height constraints after choosing the target Minecraft version.
 - Add config options once the core generation behavior works.

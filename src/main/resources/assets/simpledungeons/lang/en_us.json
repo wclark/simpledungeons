@@ -1,0 +1,8 @@
+{
+  "simpledungeons.configuration.enableSkyIslandDungeon": "Generate sky island dungeons",
+  "simpledungeons.configuration.enableSurfaceCrypt": "Generate surface crypt dungeons",
+  "simpledungeons.configuration.enableCaveDungeon": "Generate cave-bound dungeons",
+  "simpledungeons.configuration.skyIslandAverageSpacing": "Sky island dungeon spacing",
+  "simpledungeons.configuration.surfaceCryptAverageSpacing": "Surface crypt dungeon spacing",
+  "simpledungeons.configuration.caveDungeonAverageSpacing": "Cave-bound dungeon spacing"
+}
