@@ -1,0 +1,26 @@
+# Gradle / Java
+.gradle/
+build/
+out/
+target/
+*.class
+
+# Minecraft run directories
+run/
+runs/
+
+# IDE files
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
