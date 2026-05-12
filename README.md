@@ -7,9 +7,9 @@ Simple Dungeons is a Minecraft mod concept focused on adding three memorable dun
 - Repository: `simpledungeons`
 - Mod name: `Simple Dungeons`
 - Mod id: `simpledungeons`
-- Minecraft: `26.1.2`
-- Mod loader: NeoForge `26.1.2.45-beta`
-- Java: `25`
+- Minecraft: `1.21.1`
+- Mod loader: NeoForge `21.1.219`
+- Java: `21`
 - Current status: NeoForge project scaffold
 
 ## Dungeon Concepts
@@ -43,11 +43,11 @@ Useful commands:
 ```powershell
 .\gradlew.bat build
 .\gradlew.bat runClient
-.\gradlew.bat clientData
+.\gradlew.bat data
 ```
 
 The built mod jar appears in `build/libs`.
 
 ## Notes
 
-The loader choice follows the existing Simple Spells setup, which uses NeoForge. Minecraft `26.1.2` is the latest stable Java Edition release reported by Mojang's official version manifest.
+The loader and Minecraft versions are pinned to match the existing Simple Spells project, which uses NeoForge `21.1.219` for Minecraft `1.21.1`.
