@@ -1,6 +1,7 @@
 package com.github.wclark.simpledungeons;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
@@ -17,7 +18,7 @@ import net.minecraft.world.entity.monster.Skeleton;
 import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -79,11 +80,11 @@ public class RestlessGraveSoilBlock extends Block {
 
         mob.moveTo(pos.getX() + 0.5, pos.getY() + 1.05, pos.getZ() + 0.5, random.nextFloat() * 360.0F, 0.0F);
         mob.finalizeSpawn(level, level.getCurrentDifficultyAt(pos), MobSpawnType.TRIGGERED, null);
-        equipGraveMob(level, mob, random);
         mob.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 45, 5));
         mob.setDeltaMovement(0.0, 0.18, 0.0);
         mob.setPersistenceRequired();
         level.addFreshEntity(mob);
+        equipGraveMob(level, mob, random);
     }
 
     private static Zombie createZombie(ServerLevel level) {
@@ -96,20 +97,28 @@ public class RestlessGraveSoilBlock extends Block {
 
     private static void equipGraveMob(ServerLevel level, Mob mob, RandomSource random) {
         boolean skeleton = mob instanceof Skeleton;
-        ItemStack weapon = skeleton ? new ItemStack(Items.BOW) : new ItemStack(random.nextBoolean() ? Items.IRON_SWORD : Items.STONE_SWORD);
+        ItemStack weapon = skeleton ? new ItemStack(Items.BOW) : new ItemStack(Items.IRON_SWORD);
 
         if (skeleton) {
-            weapon = EnchantmentHelper.enchantItem(random, weapon, 18, level.registryAccess(), java.util.Optional.empty());
+            weaklyEnchantBow(level, weapon, random);
         }
 
         damageHalf(weapon, random);
         mob.setItemSlot(EquipmentSlot.MAINHAND, weapon);
         mob.setDropChance(EquipmentSlot.MAINHAND, 0.12F);
 
-        equipArmor(mob, EquipmentSlot.HEAD, new ItemStack(random.nextBoolean() ? Items.CHAINMAIL_HELMET : Items.IRON_HELMET), random);
+        equipArmor(mob, EquipmentSlot.HEAD, new ItemStack(Items.IRON_HELMET), random);
         equipArmor(mob, EquipmentSlot.CHEST, new ItemStack(random.nextBoolean() ? Items.CHAINMAIL_CHESTPLATE : Items.IRON_CHESTPLATE), random);
         equipArmor(mob, EquipmentSlot.LEGS, new ItemStack(random.nextBoolean() ? Items.CHAINMAIL_LEGGINGS : Items.IRON_LEGGINGS), random);
         equipArmor(mob, EquipmentSlot.FEET, new ItemStack(random.nextBoolean() ? Items.CHAINMAIL_BOOTS : Items.IRON_BOOTS), random);
+    }
+
+    private static void weaklyEnchantBow(ServerLevel level, ItemStack bow, RandomSource random) {
+        var enchantments = level.registryAccess().registryOrThrow(Registries.ENCHANTMENT);
+        bow.enchant(enchantments.getHolderOrThrow(Enchantments.POWER), 1);
+        if (random.nextFloat() < 0.25F) {
+            bow.enchant(enchantments.getHolderOrThrow(Enchantments.PUNCH), 1);
+        }
     }
 
     private static void equipArmor(Mob mob, EquipmentSlot slot, ItemStack stack, RandomSource random) {
@@ -125,7 +134,8 @@ public class RestlessGraveSoilBlock extends Block {
 
         int maxDamage = stack.getMaxDamage();
         int variance = Math.max(1, maxDamage / 8);
-        int damage = Math.min(maxDamage - 1, maxDamage / 2 + random.nextInt(variance));
+        int damage = maxDamage / 2 - variance / 2 + random.nextInt(variance + 1);
+        damage = Math.max(1, Math.min(maxDamage - 1, damage));
         stack.setDamageValue(damage);
     }
 }

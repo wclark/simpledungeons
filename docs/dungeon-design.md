@@ -37,6 +37,7 @@ This document captures the first design pass for Simple Dungeons.
 - Generates only in open, relatively flat biome tags such as plains, snowy plains, deserts, and savannas.
 - Avoids forests, jungles, and similarly dense biomes.
 - Performs a local flatness check before placing so the graveyard does not land on rough terrain.
+- Must generate near world spawn, but not directly on top of the spawn point.
 - Can be partially buried or ruined so it blends into terrain.
 
 ### Shape
@@ -49,7 +50,10 @@ This document captures the first design pass for Simple Dungeons.
 ### Gameplay Notes
 
 - Good fit for undead enemies, traps, and sealed rooms.
-- Restless grave spots in front of graves wake when a player gets close, spawning armored zombies or skeletons with damaged weapons.
+- Restless grave spots in front of graves wake when a player gets close, spawning armored zombies or skeletons.
+- Grave zombies should always have armor, headgear, and a sword.
+- Grave skeletons should always have armor, headgear, and a weakly enchanted bow.
+- All grave mob equipment should be visibly worn and around half durability.
 - Loot can include bones, old tools, enchanted books, grave goods, and rare crypt rewards.
 - The entrance should remain discoverable after terrain placement.
 

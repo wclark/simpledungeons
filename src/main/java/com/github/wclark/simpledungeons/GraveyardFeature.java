@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.level.Level;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.WorldGenLevel;
@@ -22,6 +23,8 @@ public class GraveyardFeature extends Feature<NoneFeatureConfiguration> {
     private static final int HALF_WIDTH = 13;
     private static final int HALF_DEPTH = 11;
     private static final int MAX_HEIGHT_VARIANCE = 2;
+    private static final int MIN_SPAWN_DISTANCE_BLOCKS = 96;
+    private static final int MAX_SPAWN_DISTANCE_BLOCKS = 256;
 
     public GraveyardFeature(Codec<NoneFeatureConfiguration> codec) {
         super(codec);
@@ -37,6 +40,10 @@ public class GraveyardFeature extends Feature<NoneFeatureConfiguration> {
         BlockPos origin = context.origin();
         BlockPos centerGround = groundAt(level, origin.getX(), origin.getZ());
 
+        if (!isNearButNotOnSpawn(level, centerGround)) {
+            return false;
+        }
+
         if (!isUsableArea(level, centerGround)) {
             return false;
         }
@@ -46,6 +53,19 @@ public class GraveyardFeature extends Feature<NoneFeatureConfiguration> {
         placeCryptEntrance(level, centerGround);
         placeGraves(level, centerGround, context.random());
         return true;
+    }
+
+    private static boolean isNearButNotOnSpawn(WorldGenLevel level, BlockPos centerGround) {
+        if (level.getLevel().dimension() != Level.OVERWORLD) {
+            return false;
+        }
+
+        BlockPos spawn = level.getLevel().getSharedSpawnPos();
+        int dx = centerGround.getX() - spawn.getX();
+        int dz = centerGround.getZ() - spawn.getZ();
+        int distanceSqr = dx * dx + dz * dz;
+        return distanceSqr >= MIN_SPAWN_DISTANCE_BLOCKS * MIN_SPAWN_DISTANCE_BLOCKS
+                && distanceSqr <= MAX_SPAWN_DISTANCE_BLOCKS * MAX_SPAWN_DISTANCE_BLOCKS;
     }
 
     private static boolean isUsableArea(WorldGenLevel level, BlockPos centerGround) {
