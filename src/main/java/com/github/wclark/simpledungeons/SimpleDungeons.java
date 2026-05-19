@@ -20,7 +20,7 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.server.ServerStartingEvent;
+import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -64,8 +64,11 @@ public class SimpleDungeons {
     }
 
     @SubscribeEvent
-    public void onServerStarting(ServerStartingEvent event) {
-        LOGGER.info("Simple Dungeons is preparing dungeon generation hooks.");
+    public void onServerStarted(ServerStartedEvent event) {
+        boolean placed = GraveyardFeature.ensureSpawnGraveyard(event.getServer().overworld());
+        LOGGER.info(
+                "Simple Dungeons spawn graveyard {}.",
+                placed ? "was placed near the world spawn" : "already exists near the world spawn");
     }
 
     @SubscribeEvent

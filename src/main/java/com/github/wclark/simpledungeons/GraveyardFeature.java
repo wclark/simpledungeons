@@ -4,9 +4,10 @@ import com.mojang.serialization.Codec;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SlabBlock;
@@ -20,11 +21,13 @@ import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConf
 import net.minecraft.world.level.material.Fluids;
 
 public class GraveyardFeature extends Feature<NoneFeatureConfiguration> {
-    private static final int HALF_WIDTH = 13;
-    private static final int HALF_DEPTH = 11;
+    private static final int HALF_WIDTH = 18;
+    private static final int HALF_DEPTH = 16;
+    private static final int CLEAR_HEIGHT = 12;
     private static final int MAX_HEIGHT_VARIANCE = 2;
     private static final int MIN_SPAWN_DISTANCE_BLOCKS = 96;
     private static final int MAX_SPAWN_DISTANCE_BLOCKS = 256;
+    private static final int SPAWN_GRAVEYARD_SCAN_RADIUS = 64;
 
     public GraveyardFeature(Codec<NoneFeatureConfiguration> codec) {
         super(codec);
@@ -48,10 +51,29 @@ public class GraveyardFeature extends Feature<NoneFeatureConfiguration> {
             return false;
         }
 
-        prepareGround(level, centerGround, context.random());
+        return placeGraveyard(level, centerGround, context.random());
+    }
+
+    public static boolean ensureSpawnGraveyard(ServerLevel level) {
+        if (!Config.ENABLE_SURFACE_CRYPT.getAsBoolean() || level.dimension() != Level.OVERWORLD) {
+            return false;
+        }
+
+        BlockPos spawn = level.getSharedSpawnPos();
+        BlockPos centerGround = groundAt(level, spawn.getX(), spawn.getZ());
+        if (hasGraveyardMarkerNear(level, centerGround, SPAWN_GRAVEYARD_SCAN_RADIUS)) {
+            return false;
+        }
+
+        return placeGraveyard(level, centerGround, level.random);
+    }
+
+    private static boolean placeGraveyard(WorldGenLevel level, BlockPos centerGround, RandomSource random) {
+        prepareGround(level, centerGround, random);
         placeFence(level, centerGround);
-        placeCryptEntrance(level, centerGround);
-        placeGraves(level, centerGround, context.random());
+        placeCryptEntrance(level, centerGround, random);
+        placeGraves(level, centerGround, random);
+        placeDecor(level, centerGround, random);
         return true;
     }
 
@@ -105,14 +127,14 @@ public class GraveyardFeature extends Feature<NoneFeatureConfiguration> {
     private static void prepareGround(WorldGenLevel level, BlockPos centerGround, RandomSource random) {
         for (int x = -HALF_WIDTH; x <= HALF_WIDTH; x++) {
             for (int z = -HALF_DEPTH; z <= HALF_DEPTH; z++) {
-                BlockPos ground = groundAt(level, centerGround.getX() + x, centerGround.getZ() + z);
-                clearColumn(level, ground);
+                BlockPos ground = new BlockPos(centerGround.getX() + x, centerGround.getY(), centerGround.getZ() + z);
+                shapeGroundColumn(level, ground);
 
                 BlockState groundState = random.nextFloat() < 0.22F
                         ? Blocks.COARSE_DIRT.defaultBlockState()
                         : Blocks.GRASS_BLOCK.defaultBlockState();
-                if (Math.abs(x) <= 1 || Math.abs(z) <= 1) {
-                    groundState = random.nextFloat() < 0.65F ? Blocks.DIRT_PATH.defaultBlockState() : Blocks.COARSE_DIRT.defaultBlockState();
+                if (Math.abs(x) <= 1 || Math.abs(z) <= 1 || (Math.abs(x) <= 4 && z <= -8)) {
+                    groundState = random.nextFloat() < 0.7F ? Blocks.DIRT_PATH.defaultBlockState() : Blocks.COARSE_DIRT.defaultBlockState();
                 }
 
                 level.setBlock(ground, groundState, 2);
@@ -138,33 +160,35 @@ public class GraveyardFeature extends Feature<NoneFeatureConfiguration> {
         }
     }
 
-    private static void placeCryptEntrance(WorldGenLevel level, BlockPos centerGround) {
-        BlockState bricks = Blocks.STONE_BRICKS.defaultBlockState();
-        BlockState cracked = Blocks.CRACKED_STONE_BRICKS.defaultBlockState();
+    private static void placeCryptEntrance(WorldGenLevel level, BlockPos centerGround, RandomSource random) {
         BlockState stairDown = Blocks.STONE_BRICK_STAIRS.defaultBlockState().setValue(StairBlock.FACING, Direction.SOUTH);
         BlockState topSlab = Blocks.STONE_BRICK_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.TOP);
 
-        for (int x = -3; x <= 3; x++) {
-            for (int z = -10; z <= -6; z++) {
+        for (int x = -4; x <= 4; x++) {
+            for (int z = -14; z <= -9; z++) {
                 BlockPos ground = groundAt(level, centerGround.getX() + x, centerGround.getZ() + z);
                 clearColumn(level, ground);
-                level.setBlock(ground, bricks, 2);
+                level.setBlock(ground, randomBrick(random), 2);
 
-                boolean edge = x == -3 || x == 3 || z == -10 || z == -6;
-                boolean doorway = z == -6 && Math.abs(x) <= 1;
+                boolean edge = x == -4 || x == 4 || z == -14 || z == -9;
+                boolean doorway = z == -9 && Math.abs(x) <= 1;
                 if (edge && !doorway) {
-                    level.setBlock(ground.above(), bricks, 2);
-                    level.setBlock(ground.above(2), (x + z) % 3 == 0 ? cracked : bricks, 2);
+                    level.setBlock(ground.above(), randomBrick(random), 2);
+                    level.setBlock(ground.above(2), randomBrick(random), 2);
                 }
 
-                if (Math.abs(x) <= 2 && z >= -9 && z <= -7) {
+                if (edge && !doorway && random.nextFloat() < 0.18F) {
+                    level.setBlock(ground.above(3), Blocks.MOSSY_COBBLESTONE_WALL.defaultBlockState(), 2);
+                }
+
+                if (Math.abs(x) <= 3 && z >= -13 && z <= -10) {
                     level.setBlock(ground.above(3), topSlab, 2);
                 }
             }
         }
 
-        for (int step = 0; step < 5; step++) {
-            BlockPos surface = groundAt(level, centerGround.getX(), centerGround.getZ() - 5 + step);
+        for (int step = 0; step < 7; step++) {
+            BlockPos surface = groundAt(level, centerGround.getX(), centerGround.getZ() - 8 + step);
             BlockPos stairPos = new BlockPos(surface.getX(), centerGround.getY() - step, surface.getZ());
             level.setBlock(stairPos, stairDown, 2);
             level.setBlock(stairPos.above(), Blocks.AIR.defaultBlockState(), 2);
@@ -172,17 +196,22 @@ public class GraveyardFeature extends Feature<NoneFeatureConfiguration> {
         }
 
         BlockPos sealedDoor = new BlockPos(centerGround.getX(), centerGround.getY() - 5, centerGround.getZ());
-        level.setBlock(sealedDoor, cracked, 2);
-        level.setBlock(sealedDoor.above(), cracked, 2);
+        level.setBlock(sealedDoor, Blocks.CRACKED_STONE_BRICKS.defaultBlockState(), 2);
+        level.setBlock(sealedDoor.above(), Blocks.CRACKED_STONE_BRICKS.defaultBlockState(), 2);
+
+        for (int x = -2; x <= 2; x += 4) {
+            BlockPos torchGround = groundAt(level, centerGround.getX() + x, centerGround.getZ() - 8);
+            level.setBlock(torchGround.above(), Blocks.SOUL_TORCH.defaultBlockState(), 2);
+        }
     }
 
     private static void placeGraves(WorldGenLevel level, BlockPos centerGround, RandomSource random) {
-        int[] xs = {-9, -5, -1, 3, 7};
-        int[] zs = {-2, 2, 6};
+        int[] xs = {-14, -10, -6, 6, 10, 14};
+        int[] zs = {-5, -1, 3, 7, 11};
 
         for (int z : zs) {
             for (int x : xs) {
-                if (random.nextFloat() < 0.08F) {
+                if (random.nextFloat() < 0.1F) {
                     continue;
                 }
 
@@ -204,12 +233,51 @@ public class GraveyardFeature extends Feature<NoneFeatureConfiguration> {
 
         BlockState headstone = random.nextBoolean() ? Blocks.STONE_BRICK_WALL.defaultBlockState() : Blocks.COBBLESTONE_WALL.defaultBlockState();
         level.setBlock(headGround.above(), headstone, 2);
+        if (random.nextFloat() < 0.45F) {
+            level.setBlock(headGround.above(2), random.nextBoolean()
+                    ? Blocks.STONE_BRICK_WALL.defaultBlockState()
+                    : Blocks.MOSSY_COBBLESTONE_WALL.defaultBlockState(), 2);
+        }
+
         level.setBlock(graveGround, Blocks.COARSE_DIRT.defaultBlockState(), 2);
         level.setBlock(footGround, SimpleDungeons.RESTLESS_GRAVE_SOIL.get().defaultBlockState(), 2);
 
-        if (random.nextFloat() < 0.35F) {
+        if (random.nextFloat() < 0.3F) {
             BlockPos sideGround = groundAt(level, worldX + (random.nextBoolean() ? 1 : -1), worldZ);
             level.setBlock(sideGround.above(), Blocks.DEAD_BUSH.defaultBlockState(), 2);
+        }
+
+        if (random.nextFloat() < 0.16F) {
+            BlockPos candleGround = groundAt(level, worldX + (random.nextBoolean() ? 1 : -1), worldZ - 1);
+            level.setBlock(candleGround.above(), Blocks.CANDLE.defaultBlockState(), 2);
+        }
+    }
+
+    private static void placeDecor(WorldGenLevel level, BlockPos centerGround, RandomSource random) {
+        for (int i = 0; i < 34; i++) {
+            int x = centerGround.getX() + random.nextInt(HALF_WIDTH * 2 - 2) - HALF_WIDTH + 1;
+            int z = centerGround.getZ() + random.nextInt(HALF_DEPTH * 2 - 2) - HALF_DEPTH + 1;
+            if (Math.abs(x - centerGround.getX()) <= 2 || Math.abs(z - centerGround.getZ()) <= 2) {
+                continue;
+            }
+
+            BlockPos ground = groundAt(level, x, z);
+            BlockPos above = ground.above();
+            if (level.getBlockState(ground).is(SimpleDungeons.RESTLESS_GRAVE_SOIL.get())
+                    || !level.getBlockState(above).isAir()) {
+                continue;
+            }
+
+            float roll = random.nextFloat();
+            if (roll < 0.34F) {
+                level.setBlock(above, Blocks.DEAD_BUSH.defaultBlockState(), 2);
+            } else if (roll < 0.62F) {
+                level.setBlock(above, Blocks.COBWEB.defaultBlockState(), 2);
+            } else if (roll < 0.8F) {
+                level.setBlock(above, Blocks.COBBLESTONE_WALL.defaultBlockState(), 2);
+            } else {
+                level.setBlock(above, Blocks.STONE_BRICK_SLAB.defaultBlockState(), 2);
+            }
         }
     }
 
@@ -219,18 +287,64 @@ public class GraveyardFeature extends Feature<NoneFeatureConfiguration> {
         level.setBlock(ground.above(), wall, 2);
     }
 
+    private static void shapeGroundColumn(WorldGenLevel level, BlockPos ground) {
+        BlockPos surface = groundAt(level, ground.getX(), ground.getZ());
+        if (surface.getY() < ground.getY()) {
+            for (int y = surface.getY(); y < ground.getY(); y++) {
+                level.setBlock(new BlockPos(ground.getX(), y, ground.getZ()), Blocks.DIRT.defaultBlockState(), 2);
+            }
+        } else if (surface.getY() > ground.getY()) {
+            for (int y = ground.getY() + 1; y <= surface.getY(); y++) {
+                level.setBlock(new BlockPos(ground.getX(), y, ground.getZ()), Blocks.AIR.defaultBlockState(), 2);
+            }
+        }
+
+        clearColumn(level, ground);
+    }
+
     private static void clearColumn(WorldGenLevel level, BlockPos ground) {
-        for (int y = 1; y <= 5; y++) {
+        for (int y = 1; y <= CLEAR_HEIGHT; y++) {
             BlockPos pos = ground.above(y);
             BlockState state = level.getBlockState(pos);
-            if (state.is(BlockTags.LOGS) || state.is(BlockTags.LEAVES)) {
-                continue;
-            }
-
             if (!state.isAir()) {
                 level.setBlock(pos, Blocks.AIR.defaultBlockState(), 2);
             }
         }
+    }
+
+    private static BlockState randomBrick(RandomSource random) {
+        float roll = random.nextFloat();
+        if (roll < 0.18F) {
+            return Blocks.CRACKED_STONE_BRICKS.defaultBlockState();
+        }
+
+        if (roll < 0.34F) {
+            return Blocks.MOSSY_STONE_BRICKS.defaultBlockState();
+        }
+
+        return Blocks.STONE_BRICKS.defaultBlockState();
+    }
+
+    private static boolean hasGraveyardMarkerNear(ServerLevel level, BlockPos centerGround, int radius) {
+        int radiusSqr = radius * radius;
+        for (BlockPos pos : BlockPos.betweenClosed(
+                centerGround.offset(-radius, -8, -radius),
+                centerGround.offset(radius, 8, radius))) {
+            int dx = pos.getX() - centerGround.getX();
+            int dz = pos.getZ() - centerGround.getZ();
+            if (dx * dx + dz * dz > radiusSqr) {
+                continue;
+            }
+
+            BlockState state = level.getBlockState(pos);
+            if (state.is(SimpleDungeons.RESTLESS_GRAVE_SOIL.get())
+                    || state.is(Blocks.CRACKED_STONE_BRICKS)
+                    || state.is(Blocks.MOSSY_STONE_BRICKS)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static BlockPos groundAt(WorldGenLevel level, int x, int z) {
