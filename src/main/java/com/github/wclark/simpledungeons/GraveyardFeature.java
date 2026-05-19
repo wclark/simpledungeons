@@ -5,7 +5,6 @@ import com.mojang.serialization.Codec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.WorldGenLevel;
@@ -18,16 +17,13 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
 import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
-import net.minecraft.world.level.material.Fluids;
 
 public class GraveyardFeature extends Feature<NoneFeatureConfiguration> {
     private static final int HALF_WIDTH = 18;
     private static final int HALF_DEPTH = 16;
     private static final int CLEAR_HEIGHT = 12;
-    private static final int MAX_HEIGHT_VARIANCE = 2;
-    private static final int MIN_SPAWN_DISTANCE_BLOCKS = 96;
-    private static final int MAX_SPAWN_DISTANCE_BLOCKS = 256;
-    private static final int SPAWN_GRAVEYARD_SCAN_RADIUS = 64;
+    private static final int BUILD_MARKER_OFFSET_X = HALF_WIDTH - 1;
+    private static final int BUILD_MARKER_OFFSET_Z = -HALF_DEPTH + 1;
 
     public GraveyardFeature(Codec<NoneFeatureConfiguration> codec) {
         super(codec);
@@ -35,23 +31,7 @@ public class GraveyardFeature extends Feature<NoneFeatureConfiguration> {
 
     @Override
     public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context) {
-        if (!Config.ENABLE_SURFACE_CRYPT.getAsBoolean()) {
-            return false;
-        }
-
-        WorldGenLevel level = context.level();
-        BlockPos origin = context.origin();
-        BlockPos centerGround = groundAt(level, origin.getX(), origin.getZ());
-
-        if (!isNearButNotOnSpawn(level, centerGround)) {
-            return false;
-        }
-
-        if (!isUsableArea(level, centerGround)) {
-            return false;
-        }
-
-        return placeGraveyard(level, centerGround, context.random());
+        return false;
     }
 
     public static boolean ensureSpawnGraveyard(ServerLevel level) {
@@ -61,11 +41,13 @@ public class GraveyardFeature extends Feature<NoneFeatureConfiguration> {
 
         BlockPos spawn = level.getSharedSpawnPos();
         BlockPos centerGround = groundAt(level, spawn.getX(), spawn.getZ());
-        if (hasGraveyardMarkerNear(level, centerGround, SPAWN_GRAVEYARD_SCAN_RADIUS)) {
+        if (hasCurrentBuildMarker(level, centerGround)) {
             return false;
         }
 
-        return placeGraveyard(level, centerGround, level.random);
+        placeGraveyard(level, centerGround, level.random);
+        placeCurrentBuildMarker(level, centerGround);
+        return true;
     }
 
     private static boolean placeGraveyard(WorldGenLevel level, BlockPos centerGround, RandomSource random) {
@@ -75,53 +57,6 @@ public class GraveyardFeature extends Feature<NoneFeatureConfiguration> {
         placeGraves(level, centerGround, random);
         placeDecor(level, centerGround, random);
         return true;
-    }
-
-    private static boolean isNearButNotOnSpawn(WorldGenLevel level, BlockPos centerGround) {
-        if (level.getLevel().dimension() != Level.OVERWORLD) {
-            return false;
-        }
-
-        BlockPos spawn = level.getLevel().getSharedSpawnPos();
-        int dx = centerGround.getX() - spawn.getX();
-        int dz = centerGround.getZ() - spawn.getZ();
-        int distanceSqr = dx * dx + dz * dz;
-        return distanceSqr >= MIN_SPAWN_DISTANCE_BLOCKS * MIN_SPAWN_DISTANCE_BLOCKS
-                && distanceSqr <= MAX_SPAWN_DISTANCE_BLOCKS * MAX_SPAWN_DISTANCE_BLOCKS;
-    }
-
-    private static boolean isUsableArea(WorldGenLevel level, BlockPos centerGround) {
-        int minY = centerGround.getY();
-        int maxY = centerGround.getY();
-
-        for (int x = -HALF_WIDTH; x <= HALF_WIDTH; x++) {
-            for (int z = -HALF_DEPTH; z <= HALF_DEPTH; z++) {
-                BlockPos ground = groundAt(level, centerGround.getX() + x, centerGround.getZ() + z);
-                BlockState groundState = level.getBlockState(ground);
-                BlockState surfaceState = level.getBlockState(ground.above());
-
-                if (!isStableGround(groundState) || groundState.getFluidState().getType() != Fluids.EMPTY) {
-                    return false;
-                }
-
-                if (surfaceState.is(BlockTags.LOGS) || surfaceState.is(BlockTags.LEAVES) || !surfaceState.getFluidState().isEmpty()) {
-                    return false;
-                }
-
-                minY = Math.min(minY, ground.getY());
-                maxY = Math.max(maxY, ground.getY());
-            }
-        }
-
-        return maxY - minY <= MAX_HEIGHT_VARIANCE;
-    }
-
-    private static boolean isStableGround(BlockState state) {
-        return state.is(BlockTags.DIRT)
-                || state.is(BlockTags.SAND)
-                || state.is(BlockTags.BASE_STONE_OVERWORLD)
-                || state.is(Blocks.SNOW)
-                || state.is(Blocks.SNOW_BLOCK);
     }
 
     private static void prepareGround(WorldGenLevel level, BlockPos centerGround, RandomSource random) {
@@ -325,26 +260,20 @@ public class GraveyardFeature extends Feature<NoneFeatureConfiguration> {
         return Blocks.STONE_BRICKS.defaultBlockState();
     }
 
-    private static boolean hasGraveyardMarkerNear(ServerLevel level, BlockPos centerGround, int radius) {
-        int radiusSqr = radius * radius;
-        for (BlockPos pos : BlockPos.betweenClosed(
-                centerGround.offset(-radius, -8, -radius),
-                centerGround.offset(radius, 8, radius))) {
-            int dx = pos.getX() - centerGround.getX();
-            int dz = pos.getZ() - centerGround.getZ();
-            if (dx * dx + dz * dz > radiusSqr) {
-                continue;
-            }
+    private static boolean hasCurrentBuildMarker(ServerLevel level, BlockPos centerGround) {
+        BlockPos markerGround = buildMarkerGround(centerGround);
+        return level.getBlockState(markerGround).is(Blocks.CHISELED_STONE_BRICKS)
+                && level.getBlockState(markerGround.above()).is(Blocks.SOUL_LANTERN);
+    }
 
-            BlockState state = level.getBlockState(pos);
-            if (state.is(SimpleDungeons.RESTLESS_GRAVE_SOIL.get())
-                    || state.is(Blocks.CRACKED_STONE_BRICKS)
-                    || state.is(Blocks.MOSSY_STONE_BRICKS)) {
-                return true;
-            }
-        }
+    private static void placeCurrentBuildMarker(ServerLevel level, BlockPos centerGround) {
+        BlockPos markerGround = buildMarkerGround(centerGround);
+        level.setBlock(markerGround, Blocks.CHISELED_STONE_BRICKS.defaultBlockState(), 2);
+        level.setBlock(markerGround.above(), Blocks.SOUL_LANTERN.defaultBlockState(), 2);
+    }
 
-        return false;
+    private static BlockPos buildMarkerGround(BlockPos centerGround) {
+        return centerGround.offset(BUILD_MARKER_OFFSET_X, 0, BUILD_MARKER_OFFSET_Z);
     }
 
     private static BlockPos groundAt(WorldGenLevel level, int x, int z) {

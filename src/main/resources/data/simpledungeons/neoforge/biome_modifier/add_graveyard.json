@@ -1,6 +1,0 @@
-{
-  "type": "neoforge:add_features",
-  "biomes": "#simpledungeons:has_graveyard",
-  "features": "simpledungeons:graveyard",
-  "step": "surface_structures"
-}
