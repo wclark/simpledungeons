@@ -4,5 +4,6 @@
   "simpledungeons.configuration.enableCaveDungeon": "Generate cave-bound dungeons",
   "simpledungeons.configuration.skyIslandAverageSpacing": "Sky island dungeon spacing",
   "simpledungeons.configuration.surfaceCryptAverageSpacing": "Surface crypt dungeon spacing",
-  "simpledungeons.configuration.caveDungeonAverageSpacing": "Cave-bound dungeon spacing"
+  "simpledungeons.configuration.caveDungeonAverageSpacing": "Cave-bound dungeon spacing",
+  "block.simpledungeons.restless_grave_soil": "Restless Grave Soil"
 }

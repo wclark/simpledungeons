@@ -34,18 +34,22 @@ This document captures the first design pass for Simple Dungeons.
 ### Placement
 
 - Generates on the surface.
-- Works best in plains, forests, dark forests, swamps, taigas, and similar overworld biomes.
+- Generates only in open, relatively flat biome tags such as plains, snowy plains, deserts, and savannas.
+- Avoids forests, jungles, and similarly dense biomes.
+- Performs a local flatness check before placing so the graveyard does not land on rough terrain.
 - Can be partially buried or ruined so it blends into terrain.
 
 ### Shape
 
-- Stone crypt entrance with stairs leading down.
-- Burial rooms, alcoves, cracked walls, hidden chambers, and a final tomb.
+- Large fenced graveyard with paths and rows of graves.
+- One stone crypt entrance structure with stairs leading down.
+- Future underground rooms can connect to the stairs later.
 - Exterior silhouette should be recognizable without being oversized.
 
 ### Gameplay Notes
 
 - Good fit for undead enemies, traps, and sealed rooms.
+- Restless grave spots in front of graves wake when a player gets close, spawning armored zombies or skeletons with damaged weapons.
 - Loot can include bones, old tools, enchanted books, grave goods, and rare crypt rewards.
 - The entrance should remain discoverable after terrain placement.
 
