@@ -35,6 +35,6 @@ public class SimpleDungeons {
     @SubscribeEvent
     public void onServerStarted(ServerStartedEvent event) {
         boolean placed = SpawnGraveyardStructure.ensureAtSpawn(event.getServer().overworld());
-        LOGGER.info("Simple Dungeons reference graveyard {}.", placed ? "was built at spawn" : "already exists at spawn");
+        LOGGER.info("Simple Dungeons reference graveyard {}.", placed ? "was rebuilt at spawn" : "is disabled");
     }
 }

@@ -9,18 +9,14 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CandleBlock;
 import net.minecraft.world.level.block.CrossCollisionBlock;
 import net.minecraft.world.level.block.DirectionalBlock;
-import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.SlabType;
 import net.minecraft.world.level.levelgen.Heightmap;
 
 public final class SpawnGraveyardStructure {
     private static final int HALF_WIDTH = 30;
     private static final int HALF_DEPTH = 22;
     private static final int CLEAR_HEIGHT = 15;
-    private static final int MARKER_X = HALF_WIDTH - 2;
-    private static final int MARKER_Z = -HALF_DEPTH + 2;
 
     private SpawnGraveyardStructure() {
     }
@@ -32,12 +28,7 @@ public final class SpawnGraveyardStructure {
 
         BlockPos spawn = level.getSharedSpawnPos();
         BlockPos centerGround = groundAt(level, spawn.getX(), spawn.getZ());
-        if (hasMarker(level, centerGround)) {
-            return false;
-        }
-
         build(level, centerGround, level.random);
-        placeMarker(level, centerGround);
         return true;
     }
 
@@ -47,7 +38,6 @@ public final class SpawnGraveyardStructure {
         placeFenceAndPillars(level, centerGround, random);
         placeFrontArch(level, centerGround);
         placeGravePlots(level, centerGround, random);
-        placeWoodenFrames(level, centerGround);
         placeCryptShell(level, centerGround, random);
         placeDetails(level, centerGround, random);
     }
@@ -63,8 +53,8 @@ public final class SpawnGraveyardStructure {
 
         for (int z = HALF_DEPTH + 1; z <= HALF_DEPTH + 8; z++) {
             for (int x = -3; x <= 3; x++) {
-                BlockPos ground = groundAt(level, centerGround.getX() + x, centerGround.getZ() + z);
-                clearColumn(level, ground);
+                BlockPos ground = loweredEntryPathAt(centerGround, x, z);
+                shapeGroundColumn(level, ground);
                 level.setBlock(ground, pathBlock(random), 2);
             }
         }
@@ -132,9 +122,9 @@ public final class SpawnGraveyardStructure {
 
         for (int x = -4; x <= 4; x++) {
             BlockPos ground = at(centerGround, x, HALF_DEPTH);
-            level.setBlock(ground.above(5), Blocks.POLISHED_DIORITE.defaultBlockState(), 2);
+            level.setBlock(ground.above(5), Blocks.DEEPSLATE_BRICKS.defaultBlockState(), 2);
             if (Math.abs(x) <= 2) {
-                level.setBlock(ground.above(4), Blocks.CALCITE.defaultBlockState(), 2);
+                level.setBlock(ground.above(4), Blocks.DEEPSLATE_TILES.defaultBlockState(), 2);
             }
         }
 
@@ -193,33 +183,6 @@ public final class SpawnGraveyardStructure {
         level.setBlock(base.above(3), endRod(), 2);
     }
 
-    private static void placeWoodenFrames(ServerLevel level, BlockPos centerGround) {
-        placeWoodenFrame(level, centerGround, -24, -7);
-        placeWoodenFrame(level, centerGround, 25, -3);
-        placeWoodenFrame(level, centerGround, 25, 14);
-    }
-
-    private static void placeWoodenFrame(ServerLevel level, BlockPos centerGround, int x, int z) {
-        for (int dx = -1; dx <= 1; dx += 2) {
-            for (int dz = -1; dz <= 1; dz += 2) {
-                BlockPos post = at(centerGround, x + dx, z + dz);
-                clearColumn(level, post);
-                level.setBlock(post.above(), Blocks.OAK_FENCE.defaultBlockState(), 2);
-                level.setBlock(post.above(2), Blocks.OAK_FENCE.defaultBlockState(), 2);
-            }
-        }
-
-        for (int dx = -1; dx <= 1; dx++) {
-            level.setBlock(at(centerGround, x + dx, z - 1).above(3), Blocks.OAK_PLANKS.defaultBlockState(), 2);
-            level.setBlock(at(centerGround, x + dx, z + 1).above(3), Blocks.OAK_PLANKS.defaultBlockState(), 2);
-        }
-
-        for (int dz = -1; dz <= 1; dz++) {
-            level.setBlock(at(centerGround, x - 1, z + dz).above(3), Blocks.OAK_PLANKS.defaultBlockState(), 2);
-            level.setBlock(at(centerGround, x + 1, z + dz).above(3), Blocks.OAK_PLANKS.defaultBlockState(), 2);
-        }
-    }
-
     private static void placeCryptShell(ServerLevel level, BlockPos centerGround, RandomSource random) {
         for (int x = -7; x <= 7; x++) {
             for (int z = -20; z <= -10; z++) {
@@ -245,7 +208,7 @@ public final class SpawnGraveyardStructure {
         }
 
         for (int z = -21; z <= -9; z++) {
-            level.setBlock(at(centerGround, 0, z).above(7), Blocks.DEEPSLATE_TILE_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.TOP), 2);
+            level.setBlock(at(centerGround, 0, z).above(7), Blocks.DEEPSLATE_TILES.defaultBlockState(), 2);
         }
 
         for (int x = -1; x <= 1; x++) {
@@ -290,13 +253,12 @@ public final class SpawnGraveyardStructure {
 
     private static void placeLampPillar(ServerLevel level, BlockPos ground, int height) {
         clearColumn(level, ground);
-        level.setBlock(ground, Blocks.COBBLESTONE.defaultBlockState(), 2);
+        level.setBlock(ground, Blocks.COBBLED_DEEPSLATE.defaultBlockState(), 2);
         for (int y = 1; y <= height; y++) {
-            level.setBlock(ground.above(y), y % 2 == 0 ? Blocks.CALCITE.defaultBlockState() : Blocks.POLISHED_DIORITE.defaultBlockState(), 2);
+            level.setBlock(ground.above(y), y % 2 == 0 ? Blocks.DEEPSLATE_BRICKS.defaultBlockState() : Blocks.POLISHED_DEEPSLATE.defaultBlockState(), 2);
         }
 
-        level.setBlock(ground.above(height + 1), Blocks.POLISHED_DIORITE_SLAB.defaultBlockState(), 2);
-        level.setBlock(ground.above(height + 2), endRod(), 2);
+        level.setBlock(ground.above(height + 1), endRod(), 2);
     }
 
     private static void placeIronBars(ServerLevel level, BlockPos ground, boolean eastWest) {
@@ -310,8 +272,8 @@ public final class SpawnGraveyardStructure {
     }
 
     private static void setPath(ServerLevel level, BlockPos centerGround, int x, int z, RandomSource random) {
-        BlockPos ground = Math.abs(z) > HALF_DEPTH ? groundAt(level, centerGround.getX() + x, centerGround.getZ() + z) : at(centerGround, x, z);
-        clearColumn(level, ground);
+        BlockPos ground = z > HALF_DEPTH ? loweredEntryPathAt(centerGround, x, z) : at(centerGround, x, z);
+        shapeGroundColumn(level, ground);
         level.setBlock(ground, pathBlock(random), 2);
     }
 
@@ -325,11 +287,11 @@ public final class SpawnGraveyardStructure {
             return Blocks.MOSSY_COBBLESTONE.defaultBlockState();
         }
 
-        if (roll < 0.8F) {
+        if (roll < 0.82F) {
             return Blocks.STONE_BRICKS.defaultBlockState();
         }
 
-        return Blocks.DIRT_PATH.defaultBlockState();
+        return Blocks.POLISHED_ANDESITE.defaultBlockState();
     }
 
     private static BlockState agedStone(RandomSource random) {
@@ -416,20 +378,12 @@ public final class SpawnGraveyardStructure {
         }
     }
 
-    private static boolean hasMarker(ServerLevel level, BlockPos centerGround) {
-        BlockPos marker = at(centerGround, MARKER_X, MARKER_Z);
-        return level.getBlockState(marker).is(Blocks.CHISELED_STONE_BRICKS)
-                && level.getBlockState(marker.above()).is(Blocks.END_ROD);
-    }
-
-    private static void placeMarker(ServerLevel level, BlockPos centerGround) {
-        BlockPos marker = at(centerGround, MARKER_X, MARKER_Z);
-        level.setBlock(marker, Blocks.CHISELED_STONE_BRICKS.defaultBlockState(), 2);
-        level.setBlock(marker.above(), endRod(), 2);
-    }
-
     private static BlockPos at(BlockPos centerGround, int x, int z) {
         return new BlockPos(centerGround.getX() + x, centerGround.getY(), centerGround.getZ() + z);
+    }
+
+    private static BlockPos loweredEntryPathAt(BlockPos centerGround, int x, int z) {
+        return new BlockPos(centerGround.getX() + x, centerGround.getY() - 1, centerGround.getZ() + z);
     }
 
     private static BlockPos groundAt(ServerLevel level, int x, int z) {
