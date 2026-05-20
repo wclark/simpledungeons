@@ -21,6 +21,7 @@ public class SimpleDungeons {
     public SimpleDungeons(IEventBus modEventBus, ModContainer modContainer) {
         modEventBus.addListener(this::commonSetup);
         NeoForge.EVENT_BUS.register(this);
+        NeoForge.EVENT_BUS.register(new GraveyardUndeadSpawner());
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }
 

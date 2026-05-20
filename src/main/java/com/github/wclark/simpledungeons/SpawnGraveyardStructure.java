@@ -94,8 +94,8 @@ public final class SpawnGraveyardStructure {
                 continue;
             }
 
+            placeIronBars(level, at(centerGround, x, -HALF_DEPTH), true);
             if (Math.abs(x) > 4) {
-                placeIronBars(level, at(centerGround, x, -HALF_DEPTH), true);
                 placeIronBars(level, at(centerGround, x, HALF_DEPTH), true);
             }
         }
@@ -128,8 +128,8 @@ public final class SpawnGraveyardStructure {
             }
         }
 
-        level.setBlock(at(centerGround, -3, HALF_DEPTH).above(2), Blocks.LANTERN.defaultBlockState(), 2);
-        level.setBlock(at(centerGround, 3, HALF_DEPTH).above(2), Blocks.LANTERN.defaultBlockState(), 2);
+        placeEntranceLantern(level, at(centerGround, -3, HALF_DEPTH));
+        placeEntranceLantern(level, at(centerGround, 3, HALF_DEPTH));
     }
 
     private static void placeGravePlots(ServerLevel level, BlockPos centerGround, RandomSource random) {
@@ -258,6 +258,11 @@ public final class SpawnGraveyardStructure {
         }
 
         level.setBlock(ground.above(height + 1), endRod(), 2);
+    }
+
+    private static void placeEntranceLantern(ServerLevel level, BlockPos ground) {
+        level.setBlock(ground.above(), Blocks.DEEPSLATE_BRICK_WALL.defaultBlockState(), 2);
+        level.setBlock(ground.above(2), Blocks.LANTERN.defaultBlockState(), 2);
     }
 
     private static void placeIronBars(ServerLevel level, BlockPos ground, boolean eastWest) {
