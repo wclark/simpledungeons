@@ -53,7 +53,7 @@ public final class SpawnGraveyardStructure {
 
         for (int z = HALF_DEPTH + 1; z <= HALF_DEPTH + 8; z++) {
             for (int x = -3; x <= 3; x++) {
-                BlockPos ground = loweredEntryPathAt(centerGround, x, z);
+                BlockPos ground = at(centerGround, x, z);
                 shapeGroundColumn(level, ground);
                 level.setBlock(ground, pathBlock(random), 2);
             }
@@ -193,17 +193,16 @@ public final class SpawnGraveyardStructure {
                 boolean wall = x == -7 || x == 7 || z == -20 || z == -10;
                 boolean doorway = z == -10 && Math.abs(x) <= 1;
                 if (wall && !doorway) {
-                    level.setBlock(ground.above(), agedStone(random), 2);
-                    level.setBlock(ground.above(2), agedStone(random), 2);
-                    level.setBlock(ground.above(3), agedStone(random), 2);
+                    for (int y = 1; y < cryptRoofY(x); y++) {
+                        level.setBlock(ground.above(y), agedStone(random), 2);
+                    }
                 }
             }
         }
 
         for (int x = -8; x <= 8; x++) {
             for (int z = -21; z <= -9; z++) {
-                int roofY = Math.abs(x) <= 2 ? 6 : Math.abs(x) <= 5 ? 5 : 4;
-                level.setBlock(at(centerGround, x, z).above(roofY), roofBlock(random), 2);
+                level.setBlock(at(centerGround, x, z).above(cryptRoofY(x)), roofBlock(random), 2);
             }
         }
 
@@ -272,7 +271,7 @@ public final class SpawnGraveyardStructure {
     }
 
     private static void setPath(ServerLevel level, BlockPos centerGround, int x, int z, RandomSource random) {
-        BlockPos ground = z > HALF_DEPTH ? loweredEntryPathAt(centerGround, x, z) : at(centerGround, x, z);
+        BlockPos ground = at(centerGround, x, z);
         shapeGroundColumn(level, ground);
         level.setBlock(ground, pathBlock(random), 2);
     }
@@ -354,6 +353,10 @@ public final class SpawnGraveyardStructure {
         return x >= -9 && x <= 9 && z >= -21 && z <= -8;
     }
 
+    private static int cryptRoofY(int x) {
+        return Math.abs(x) <= 2 ? 6 : Math.abs(x) <= 5 ? 5 : 4;
+    }
+
     private static void shapeGroundColumn(ServerLevel level, BlockPos ground) {
         BlockPos surface = groundAt(level, ground.getX(), ground.getZ());
         if (surface.getY() < ground.getY()) {
@@ -380,10 +383,6 @@ public final class SpawnGraveyardStructure {
 
     private static BlockPos at(BlockPos centerGround, int x, int z) {
         return new BlockPos(centerGround.getX() + x, centerGround.getY(), centerGround.getZ() + z);
-    }
-
-    private static BlockPos loweredEntryPathAt(BlockPos centerGround, int x, int z) {
-        return new BlockPos(centerGround.getX() + x, centerGround.getY() - 1, centerGround.getZ() + z);
     }
 
     private static BlockPos groundAt(ServerLevel level, int x, int z) {
