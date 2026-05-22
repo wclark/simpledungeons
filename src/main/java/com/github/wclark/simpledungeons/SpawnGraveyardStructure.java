@@ -5,6 +5,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobSpawnType;
@@ -195,8 +196,17 @@ public final class SpawnGraveyardStructure {
         }
 
         if (random.nextFloat() < 0.2F) {
-            level.setBlock(at(centerGround, x + (random.nextBoolean() ? 1 : -1), z).above(), Blocks.BLUE_ORCHID.defaultBlockState(), 2);
+            placeSupportedFlower(level, at(centerGround, x + (random.nextBoolean() ? 1 : -1), z).above());
         }
+    }
+
+    private static void placeSupportedFlower(ServerLevel level, BlockPos pos) {
+        BlockPos support = pos.below();
+        if (level.getBlockState(support).isAir()) {
+            level.setBlock(support, Blocks.GRASS_BLOCK.defaultBlockState(), 2);
+        }
+
+        level.setBlock(pos, Blocks.BLUE_ORCHID.defaultBlockState(), 2);
     }
 
     private static void placeLargeMemorial(ServerLevel level, BlockPos centerGround, int x, int z) {
@@ -269,8 +279,8 @@ public final class SpawnGraveyardStructure {
         placeWaterChute(level, centerGround);
 
         for (int x = -5; x <= 5; x += 10) {
-            level.setBlock(at(centerGround, x, 1, -13), Blocks.AZALEA_LEAVES.defaultBlockState(), 2);
-            level.setBlock(at(centerGround, x, 1, -14), Blocks.FLOWERING_AZALEA_LEAVES.defaultBlockState(), 2);
+            placeRootedLeaves(level, centerGround, x, -13, random.nextBoolean());
+            placeRootedLeaves(level, centerGround, x, -14, true);
         }
 
         level.setBlock(at(centerGround, 0, 2, -20), Blocks.GLOWSTONE.defaultBlockState(), 2);
@@ -311,10 +321,17 @@ public final class SpawnGraveyardStructure {
             level.setBlock(at(centerGround, x, 2, -20), Blocks.MOSSY_STONE_BRICKS.defaultBlockState(), 2);
         }
 
-        level.setBlock(at(centerGround, -6, 1, -12), Blocks.AZALEA_LEAVES.defaultBlockState(), 2);
-        level.setBlock(at(centerGround, 6, 1, -18), Blocks.FLOWERING_AZALEA_LEAVES.defaultBlockState(), 2);
+        placeRootedLeaves(level, centerGround, -6, -12, false);
+        placeRootedLeaves(level, centerGround, 6, -18, true);
         level.setBlock(at(centerGround, -4, 2, -20), Blocks.COBWEB.defaultBlockState(), 2);
         level.setBlock(at(centerGround, 4, 2, -20), Blocks.COBWEB.defaultBlockState(), 2);
+    }
+
+    private static void placeRootedLeaves(ServerLevel level, BlockPos centerGround, int x, int z, boolean flowering) {
+        level.setBlock(at(centerGround, x, z), Blocks.MOSS_BLOCK.defaultBlockState(), 2);
+        level.setBlock(at(centerGround, x, 1, z), flowering
+                ? Blocks.FLOWERING_AZALEA_LEAVES.defaultBlockState()
+                : Blocks.AZALEA_LEAVES.defaultBlockState(), 2);
     }
 
     private static void placeWaterChute(ServerLevel level, BlockPos centerGround) {
@@ -561,8 +578,7 @@ public final class SpawnGraveyardStructure {
     private static void placeOvergrownLootRoom(ServerLevel level, BlockPos centerGround, int cx, int cz, RandomSource random) {
         for (int x = cx - 4; x <= cx + 4; x += 4) {
             for (int z = cz - 4; z <= cz + 4; z += 4) {
-                level.setBlock(at(centerGround, x, LOWER_CRYPT_FLOOR_Y + 1, z), Blocks.AZALEA_LEAVES.defaultBlockState(), 2);
-                level.setBlock(at(centerGround, x, LOWER_CRYPT_FLOOR_Y + 2, z), Blocks.FLOWERING_AZALEA_LEAVES.defaultBlockState(), 2);
+                placeLowerRootedLeaves(level, centerGround, x, z, random.nextBoolean());
             }
         }
 
@@ -682,18 +698,18 @@ public final class SpawnGraveyardStructure {
         chest.setChanged();
     }
 
-    private static void putScatteredLoot(ChestBlockEntity chest, RandomSource random, ItemStack stack) {
+    private static void putScatteredLoot(Container container, RandomSource random, ItemStack stack) {
         for (int tries = 0; tries < 12; tries++) {
-            int slot = random.nextInt(chest.getContainerSize());
-            if (chest.getItem(slot).isEmpty()) {
-                chest.setItem(slot, stack);
+            int slot = random.nextInt(container.getContainerSize());
+            if (container.getItem(slot).isEmpty()) {
+                container.setItem(slot, stack);
                 return;
             }
         }
 
-        for (int slot = 0; slot < chest.getContainerSize(); slot++) {
-            if (chest.getItem(slot).isEmpty()) {
-                chest.setItem(slot, stack);
+        for (int slot = 0; slot < container.getContainerSize(); slot++) {
+            if (container.getItem(slot).isEmpty()) {
+                container.setItem(slot, stack);
                 return;
             }
         }
@@ -707,13 +723,20 @@ public final class SpawnGraveyardStructure {
         }
 
         barrel.clearContent();
-        barrel.setItem(0, new ItemStack(Items.COAL, 2 + random.nextInt(5)));
-        barrel.setItem(1, new ItemStack(Items.STICK, 3 + random.nextInt(5)));
-        barrel.setItem(2, new ItemStack(Items.BONE_MEAL, 2 + random.nextInt(4)));
+        putScatteredLoot(barrel, random, new ItemStack(Items.COAL, 2 + random.nextInt(5)));
+        putScatteredLoot(barrel, random, new ItemStack(Items.STICK, 3 + random.nextInt(5)));
+        putScatteredLoot(barrel, random, new ItemStack(Items.BONE_MEAL, 2 + random.nextInt(4)));
         if (random.nextBoolean()) {
-            barrel.setItem(3, new ItemStack(Items.BREAD, 1 + random.nextInt(2)));
+            putScatteredLoot(barrel, random, new ItemStack(Items.BREAD, 1 + random.nextInt(2)));
         }
         barrel.setChanged();
+    }
+
+    private static void placeLowerRootedLeaves(ServerLevel level, BlockPos centerGround, int x, int z, boolean flowering) {
+        level.setBlock(at(centerGround, x, LOWER_CRYPT_FLOOR_Y, z), Blocks.MOSS_BLOCK.defaultBlockState(), 2);
+        level.setBlock(at(centerGround, x, LOWER_CRYPT_FLOOR_Y + 1, z), flowering
+                ? Blocks.FLOWERING_AZALEA_LEAVES.defaultBlockState()
+                : Blocks.AZALEA_LEAVES.defaultBlockState(), 2);
     }
 
     private static void placeRoomMob(ServerLevel level, BlockPos centerGround, EntityType<? extends Mob> type, int x, int z) {
