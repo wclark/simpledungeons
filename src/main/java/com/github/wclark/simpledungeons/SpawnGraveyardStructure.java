@@ -17,6 +17,8 @@ public final class SpawnGraveyardStructure {
     private static final int HALF_WIDTH = 30;
     private static final int HALF_DEPTH = 22;
     private static final int CLEAR_HEIGHT = 15;
+    private static final int LOWER_CRYPT_FLOOR_Y = -14;
+    private static final int LOWER_CRYPT_CEILING_Y = -4;
 
     private SpawnGraveyardStructure() {
     }
@@ -39,6 +41,8 @@ public final class SpawnGraveyardStructure {
         placeFrontArch(level, centerGround);
         placeGravePlots(level, centerGround, random);
         placeCryptShell(level, centerGround, random);
+        placeCryptInterior(level, centerGround, random);
+        placeLowerCrypt(level, centerGround, random);
         placeDetails(level, centerGround, random);
     }
 
@@ -215,10 +219,194 @@ public final class SpawnGraveyardStructure {
             level.setBlock(at(centerGround, x, -10).above(2), Blocks.AIR.defaultBlockState(), 2);
         }
 
-        level.setBlock(at(centerGround, 0, -11).above(), Blocks.BLACKSTONE.defaultBlockState(), 2);
-        level.setBlock(at(centerGround, 0, -11).above(2), Blocks.BLACKSTONE.defaultBlockState(), 2);
         level.setBlock(at(centerGround, -3, -9).above(), Blocks.SOUL_LANTERN.defaultBlockState(), 2);
         level.setBlock(at(centerGround, 3, -9).above(), Blocks.SOUL_LANTERN.defaultBlockState(), 2);
+    }
+
+    private static void placeCryptInterior(ServerLevel level, BlockPos centerGround, RandomSource random) {
+        for (int x = -6; x <= 6; x++) {
+            for (int z = -19; z <= -11; z++) {
+                BlockPos floor = at(centerGround, x, z);
+                level.setBlock(floor, cryptFloorBlock(random), 2);
+                for (int y = 1; y < cryptRoofY(x); y++) {
+                    level.setBlock(floor.above(y), Blocks.AIR.defaultBlockState(), 2);
+                }
+            }
+        }
+
+        for (int x = -1; x <= 1; x++) {
+            for (int y = 1; y <= 3; y++) {
+                level.setBlock(at(centerGround, x, y, -10), Blocks.AIR.defaultBlockState(), 2);
+            }
+        }
+
+        for (int x = -3; x <= 3; x++) {
+            for (int z = -17; z <= -12; z++) {
+                level.setBlock(at(centerGround, x, z), Blocks.POLISHED_DEEPSLATE.defaultBlockState(), 2);
+            }
+        }
+
+        placeWaterChute(level, centerGround);
+
+        for (int x = -5; x <= 5; x += 10) {
+            level.setBlock(at(centerGround, x, 1, -13), Blocks.AZALEA_LEAVES.defaultBlockState(), 2);
+            level.setBlock(at(centerGround, x, 1, -14), Blocks.FLOWERING_AZALEA_LEAVES.defaultBlockState(), 2);
+        }
+
+        level.setBlock(at(centerGround, 0, 2, -20), Blocks.GLOWSTONE.defaultBlockState(), 2);
+        level.setBlock(at(centerGround, -1, 2, -20), Blocks.MOSSY_COBBLESTONE.defaultBlockState(), 2);
+        level.setBlock(at(centerGround, 1, 2, -20), Blocks.MOSSY_COBBLESTONE.defaultBlockState(), 2);
+        level.setBlock(at(centerGround, 0, 3, -20), Blocks.CRACKED_STONE_BRICKS.defaultBlockState(), 2);
+        level.setBlock(at(centerGround, -1, 1, -20), Blocks.MOSSY_COBBLESTONE.defaultBlockState(), 2);
+        level.setBlock(at(centerGround, 1, 1, -20), Blocks.MOSSY_COBBLESTONE.defaultBlockState(), 2);
+
+        level.setBlock(at(centerGround, -4, 1, -18), candle(), 2);
+        level.setBlock(at(centerGround, 4, 1, -18), candle(), 2);
+        level.setBlock(at(centerGround, -5, 1, -11), Blocks.COBWEB.defaultBlockState(), 2);
+        level.setBlock(at(centerGround, 5, 2, -19), Blocks.COBWEB.defaultBlockState(), 2);
+    }
+
+    private static void placeWaterChute(ServerLevel level, BlockPos centerGround) {
+        for (int y = LOWER_CRYPT_FLOOR_Y + 1; y <= 0; y++) {
+            for (int x = -1; x <= 1; x++) {
+                for (int z = -16; z <= -14; z++) {
+                    level.setBlock(at(centerGround, x, y, z), Blocks.WATER.defaultBlockState(), 2);
+                }
+            }
+
+            if (y >= LOWER_CRYPT_FLOOR_Y + 3 && y < 0) {
+                for (int x = -2; x <= 2; x++) {
+                    level.setBlock(at(centerGround, x, y, -17), Blocks.DEEPSLATE_BRICKS.defaultBlockState(), 2);
+                    level.setBlock(at(centerGround, x, y, -13), Blocks.DEEPSLATE_BRICKS.defaultBlockState(), 2);
+                }
+
+                for (int z = -16; z <= -14; z++) {
+                    level.setBlock(at(centerGround, -2, y, z), Blocks.DEEPSLATE_BRICKS.defaultBlockState(), 2);
+                    level.setBlock(at(centerGround, 2, y, z), Blocks.DEEPSLATE_BRICKS.defaultBlockState(), 2);
+                }
+            }
+        }
+
+        for (int x = -3; x <= 3; x++) {
+            for (int z = -18; z <= -12; z++) {
+                if (Math.abs(x) <= 1 && z >= -16 && z <= -14) {
+                    continue;
+                }
+
+                level.setBlock(at(centerGround, x, LOWER_CRYPT_FLOOR_Y, z), Blocks.POLISHED_DEEPSLATE.defaultBlockState(), 2);
+            }
+        }
+    }
+
+    private static void placeLowerCrypt(ServerLevel level, BlockPos centerGround, RandomSource random) {
+        int minX = -16;
+        int maxX = 16;
+        int minZ = -30;
+        int maxZ = 0;
+
+        for (int x = minX; x <= maxX; x++) {
+            for (int z = minZ; z <= maxZ; z++) {
+                for (int y = LOWER_CRYPT_FLOOR_Y; y <= LOWER_CRYPT_CEILING_Y; y++) {
+                    boolean shell = x == minX || x == maxX || z == minZ || z == maxZ;
+                    BlockPos pos = at(centerGround, x, y, z);
+
+                    if (y == LOWER_CRYPT_FLOOR_Y) {
+                        level.setBlock(pos, lowerFloorBlock(random), 2);
+                    } else if (y == LOWER_CRYPT_CEILING_Y) {
+                        level.setBlock(pos, lowerCeilingBlock(random), 2);
+                    } else if (shell) {
+                        level.setBlock(pos, lowerWallBlock(random), 2);
+                    } else {
+                        level.setBlock(pos, Blocks.AIR.defaultBlockState(), 2);
+                    }
+                }
+            }
+        }
+
+        placeWaterChute(level, centerGround);
+        placeLowerCryptPillars(level, centerGround);
+        placeLowerCryptArches(level, centerGround);
+        placeLowerCryptShrine(level, centerGround);
+        placeLowerCryptDetails(level, centerGround);
+    }
+
+    private static void placeLowerCryptPillars(ServerLevel level, BlockPos centerGround) {
+        int[] zs = {-25, -18, -11, -4};
+        for (int z : zs) {
+            placeLowerPillar(level, centerGround, -11, z);
+            placeLowerPillar(level, centerGround, 11, z);
+        }
+
+        placeLowerPillar(level, centerGround, -4, -24);
+        placeLowerPillar(level, centerGround, 4, -24);
+    }
+
+    private static void placeLowerPillar(ServerLevel level, BlockPos centerGround, int x, int z) {
+        BlockPos floor = at(centerGround, x, LOWER_CRYPT_FLOOR_Y, z);
+        level.setBlock(floor, Blocks.POLISHED_DEEPSLATE.defaultBlockState(), 2);
+        level.setBlock(floor.above(), Blocks.CHISELED_STONE_BRICKS.defaultBlockState(), 2);
+        for (int y = LOWER_CRYPT_FLOOR_Y + 2; y <= LOWER_CRYPT_CEILING_Y - 2; y++) {
+            level.setBlock(at(centerGround, x, y, z), Blocks.DEEPSLATE_BRICKS.defaultBlockState(), 2);
+        }
+        level.setBlock(at(centerGround, x, LOWER_CRYPT_CEILING_Y - 1, z), Blocks.CHISELED_STONE_BRICKS.defaultBlockState(), 2);
+    }
+
+    private static void placeLowerCryptArches(ServerLevel level, BlockPos centerGround) {
+        for (int x = -4; x <= 4; x++) {
+            level.setBlock(at(centerGround, x, LOWER_CRYPT_FLOOR_Y + 1, -30), Blocks.DEEPSLATE_BRICKS.defaultBlockState(), 2);
+            level.setBlock(at(centerGround, x, LOWER_CRYPT_FLOOR_Y + 5, -30), Blocks.DEEPSLATE_BRICKS.defaultBlockState(), 2);
+        }
+
+        for (int y = LOWER_CRYPT_FLOOR_Y + 1; y <= LOWER_CRYPT_FLOOR_Y + 5; y++) {
+            level.setBlock(at(centerGround, -5, y, -30), Blocks.POLISHED_DEEPSLATE.defaultBlockState(), 2);
+            level.setBlock(at(centerGround, 5, y, -30), Blocks.POLISHED_DEEPSLATE.defaultBlockState(), 2);
+        }
+
+        level.setBlock(at(centerGround, -4, LOWER_CRYPT_FLOOR_Y + 4, -29), stair(Direction.EAST), 2);
+        level.setBlock(at(centerGround, 4, LOWER_CRYPT_FLOOR_Y + 4, -29), stair(Direction.WEST), 2);
+        level.setBlock(at(centerGround, 0, LOWER_CRYPT_FLOOR_Y + 6, -29), Blocks.STONE_BRICK_SLAB.defaultBlockState(), 2);
+
+        for (int z = -28; z <= -2; z += 8) {
+            level.setBlock(at(centerGround, -16, LOWER_CRYPT_FLOOR_Y + 2, z), Blocks.CHISELED_STONE_BRICKS.defaultBlockState(), 2);
+            level.setBlock(at(centerGround, 16, LOWER_CRYPT_FLOOR_Y + 2, z), Blocks.CHISELED_STONE_BRICKS.defaultBlockState(), 2);
+        }
+    }
+
+    private static void placeLowerCryptShrine(ServerLevel level, BlockPos centerGround) {
+        for (int x = -3; x <= 3; x++) {
+            for (int z = -27; z <= -23; z++) {
+                level.setBlock(at(centerGround, x, LOWER_CRYPT_FLOOR_Y + 1, z), Blocks.STONE_BRICKS.defaultBlockState(), 2);
+            }
+        }
+
+        for (int x = -2; x <= 2; x++) {
+            level.setBlock(at(centerGround, x, LOWER_CRYPT_FLOOR_Y + 2, -25), Blocks.POLISHED_DEEPSLATE.defaultBlockState(), 2);
+        }
+
+        level.setBlock(at(centerGround, 0, LOWER_CRYPT_FLOOR_Y + 3, -25), Blocks.REDSTONE_BLOCK.defaultBlockState(), 2);
+        level.setBlock(at(centerGround, -2, LOWER_CRYPT_FLOOR_Y + 2, -23), candle(), 2);
+        level.setBlock(at(centerGround, 2, LOWER_CRYPT_FLOOR_Y + 2, -23), candle(), 2);
+    }
+
+    private static void placeLowerCryptDetails(ServerLevel level, BlockPos centerGround) {
+        int floor = LOWER_CRYPT_FLOOR_Y;
+        for (int z = -29; z <= -1; z++) {
+            if (z % 5 == 0) {
+                level.setBlock(at(centerGround, 0, floor, z), Blocks.POLISHED_DEEPSLATE.defaultBlockState(), 2);
+                level.setBlock(at(centerGround, -1, floor, z), Blocks.CRACKED_STONE_BRICKS.defaultBlockState(), 2);
+                level.setBlock(at(centerGround, 1, floor, z), Blocks.CRACKED_STONE_BRICKS.defaultBlockState(), 2);
+            }
+        }
+
+        level.setBlock(at(centerGround, -14, floor + 1, -28), Blocks.COBWEB.defaultBlockState(), 2);
+        level.setBlock(at(centerGround, 14, floor + 2, -1), Blocks.COBWEB.defaultBlockState(), 2);
+        level.setBlock(at(centerGround, -15, floor + 3, -6), Blocks.COBWEB.defaultBlockState(), 2);
+        level.setBlock(at(centerGround, 15, floor + 1, -22), Blocks.COBWEB.defaultBlockState(), 2);
+
+        for (int z = -26; z <= -4; z += 6) {
+            level.setBlock(at(centerGround, -13, floor + 1, z), candle(), 2);
+            level.setBlock(at(centerGround, 13, floor + 1, z), candle(), 2);
+        }
     }
 
     private static void placeDetails(ServerLevel level, BlockPos centerGround, RandomSource random) {
@@ -319,6 +507,67 @@ public final class SpawnGraveyardStructure {
         return random.nextBoolean() ? Blocks.DEEPSLATE_TILES.defaultBlockState() : Blocks.COBBLED_DEEPSLATE.defaultBlockState();
     }
 
+    private static BlockState cryptFloorBlock(RandomSource random) {
+        float roll = random.nextFloat();
+        if (roll < 0.45F) {
+            return Blocks.POLISHED_DEEPSLATE.defaultBlockState();
+        }
+
+        if (roll < 0.7F) {
+            return Blocks.DEEPSLATE_BRICKS.defaultBlockState();
+        }
+
+        if (roll < 0.85F) {
+            return Blocks.CRACKED_DEEPSLATE_BRICKS.defaultBlockState();
+        }
+
+        return Blocks.MOSSY_STONE_BRICKS.defaultBlockState();
+    }
+
+    private static BlockState lowerFloorBlock(RandomSource random) {
+        float roll = random.nextFloat();
+        if (roll < 0.38F) {
+            return Blocks.POLISHED_DEEPSLATE.defaultBlockState();
+        }
+
+        if (roll < 0.66F) {
+            return Blocks.DEEPSLATE_BRICKS.defaultBlockState();
+        }
+
+        if (roll < 0.84F) {
+            return Blocks.STONE_BRICKS.defaultBlockState();
+        }
+
+        return Blocks.CRACKED_STONE_BRICKS.defaultBlockState();
+    }
+
+    private static BlockState lowerWallBlock(RandomSource random) {
+        float roll = random.nextFloat();
+        if (roll < 0.52F) {
+            return Blocks.DEEPSLATE_BRICKS.defaultBlockState();
+        }
+
+        if (roll < 0.76F) {
+            return Blocks.CRACKED_DEEPSLATE_BRICKS.defaultBlockState();
+        }
+
+        if (roll < 0.9F) {
+            return Blocks.POLISHED_DEEPSLATE.defaultBlockState();
+        }
+
+        return Blocks.MOSSY_STONE_BRICKS.defaultBlockState();
+    }
+
+    private static BlockState lowerCeilingBlock(RandomSource random) {
+        return random.nextFloat() < 0.75F
+                ? Blocks.DEEPSLATE_TILES.defaultBlockState()
+                : Blocks.COBBLED_DEEPSLATE.defaultBlockState();
+    }
+
+    private static BlockState stair(Direction facing) {
+        return Blocks.STONE_BRICK_STAIRS.defaultBlockState().setValue(StairBlock.FACING, facing);
+    }
+
     private static BlockState randomHeadstone(RandomSource random) {
         int pick = random.nextInt(4);
         if (pick == 0) {
@@ -388,6 +637,10 @@ public final class SpawnGraveyardStructure {
 
     private static BlockPos at(BlockPos centerGround, int x, int z) {
         return new BlockPos(centerGround.getX() + x, centerGround.getY(), centerGround.getZ() + z);
+    }
+
+    private static BlockPos at(BlockPos centerGround, int x, int y, int z) {
+        return new BlockPos(centerGround.getX() + x, centerGround.getY() + y, centerGround.getZ() + z);
     }
 
     private static BlockPos groundAt(ServerLevel level, int x, int z) {
