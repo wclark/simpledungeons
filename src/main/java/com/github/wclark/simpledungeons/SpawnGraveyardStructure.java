@@ -34,12 +34,12 @@ public final class SpawnGraveyardStructure {
     private static final int LOWER_CRYPT_CEILING_Y = -4;
     private static final int LOWER_CRYPT_MIN_X = -30;
     private static final int LOWER_CRYPT_MAX_X = 30;
-    private static final int LOWER_CRYPT_MIN_Z = -68;
+    private static final int LOWER_CRYPT_MIN_Z = -72;
     private static final int LOWER_CRYPT_MAX_Z = 4;
-    private static final int BOSS_ROOM_MIN_X = -12;
-    private static final int BOSS_ROOM_MAX_X = 12;
-    private static final int BOSS_ROOM_MIN_Z = -66;
-    private static final int BOSS_ROOM_MAX_Z = -54;
+    private static final int BOSS_ROOM_MIN_X = -14;
+    private static final int BOSS_ROOM_MAX_X = 14;
+    private static final int BOSS_ROOM_MIN_Z = -69;
+    private static final int BOSS_ROOM_MAX_Z = -52;
 
     private SpawnGraveyardStructure() {
     }
@@ -423,7 +423,7 @@ public final class SpawnGraveyardStructure {
         carveLowerRoom(level, centerGround, 12, 20, -62, -60, random);
 
         carveLowerRoom(level, centerGround, BOSS_ROOM_MIN_X, BOSS_ROOM_MAX_X, BOSS_ROOM_MIN_Z, BOSS_ROOM_MAX_Z, random);
-        placeBossRoomShell(level, centerGround);
+        placeBossRoomShell(level, centerGround, random);
     }
 
     private static void carveLowerRoom(ServerLevel level, BlockPos centerGround, int minX, int maxX, int minZ, int maxZ, RandomSource random) {
@@ -438,7 +438,7 @@ public final class SpawnGraveyardStructure {
         }
     }
 
-    private static void placeBossRoomShell(ServerLevel level, BlockPos centerGround) {
+    private static void placeBossRoomShell(ServerLevel level, BlockPos centerGround, RandomSource random) {
         for (int x = BOSS_ROOM_MIN_X; x <= BOSS_ROOM_MAX_X; x++) {
             for (int z = BOSS_ROOM_MIN_Z; z <= BOSS_ROOM_MAX_Z; z++) {
                 for (int y = LOWER_CRYPT_FLOOR_Y; y <= LOWER_CRYPT_CEILING_Y; y++) {
@@ -448,8 +448,12 @@ public final class SpawnGraveyardStructure {
                     boolean doorway = (westDoorway || eastDoorway) && y >= LOWER_CRYPT_FLOOR_Y + 1 && y <= LOWER_CRYPT_FLOOR_Y + 4;
                     BlockPos pos = at(centerGround, x, y, z);
 
-                    if (y == LOWER_CRYPT_FLOOR_Y || y == LOWER_CRYPT_CEILING_Y || (wall && !doorway)) {
-                        level.setBlock(pos, Blocks.COBBLESTONE.defaultBlockState(), 2);
+                    if (y == LOWER_CRYPT_FLOOR_Y) {
+                        level.setBlock(pos, lowerFloorBlock(random), 2);
+                    } else if (y == LOWER_CRYPT_CEILING_Y) {
+                        level.setBlock(pos, lowerCeilingBlock(random), 2);
+                    } else if (wall && !doorway) {
+                        level.setBlock(pos, lowerWallBlock(random), 2);
                     } else {
                         level.setBlock(pos, Blocks.AIR.defaultBlockState(), 2);
                     }
@@ -457,9 +461,97 @@ public final class SpawnGraveyardStructure {
             }
         }
 
-        level.setBlock(at(centerGround, -6, LOWER_CRYPT_CEILING_Y, -60), Blocks.SEA_LANTERN.defaultBlockState(), 2);
-        level.setBlock(at(centerGround, 6, LOWER_CRYPT_CEILING_Y, -60), Blocks.SEA_LANTERN.defaultBlockState(), 2);
-        level.setBlock(at(centerGround, 0, LOWER_CRYPT_CEILING_Y, -62), Blocks.SEA_LANTERN.defaultBlockState(), 2);
+        placeBossRoomAltar(level, centerGround);
+        placeBossRoomLighting(level, centerGround);
+    }
+
+    private static void placeBossRoomAltar(ServerLevel level, BlockPos centerGround) {
+        int floor = LOWER_CRYPT_FLOOR_Y;
+        int centerZ = -60;
+
+        for (int x = -8; x <= 8; x++) {
+            for (int z = -66; z <= -54; z++) {
+                level.setBlock(at(centerGround, x, floor, z), Blocks.POLISHED_DEEPSLATE.defaultBlockState(), 2);
+            }
+        }
+
+        for (int x = -6; x <= 6; x++) {
+            for (int z = -65; z <= -55; z++) {
+                level.setBlock(at(centerGround, x, floor + 1, z), Blocks.DEEPSLATE_BRICKS.defaultBlockState(), 2);
+            }
+        }
+
+        for (int x = -4; x <= 4; x++) {
+            for (int z = -63; z <= -57; z++) {
+                level.setBlock(at(centerGround, x, floor + 2, z), Blocks.POLISHED_DEEPSLATE.defaultBlockState(), 2);
+            }
+        }
+
+        for (int x = -2; x <= 2; x++) {
+            for (int z = -61; z <= -59; z++) {
+                level.setBlock(at(centerGround, x, floor + 3, z), Blocks.CHISELED_STONE_BRICKS.defaultBlockState(), 2);
+            }
+        }
+
+        for (int x = -2; x <= 2; x++) {
+            level.setBlock(at(centerGround, x, floor + 1, -54), stair(Direction.SOUTH), 2);
+            level.setBlock(at(centerGround, x, floor + 1, -66), stair(Direction.NORTH), 2);
+        }
+
+        for (int z = -63; z <= -57; z += 6) {
+            for (int x = -4; x <= 4; x++) {
+                level.setBlock(at(centerGround, x, floor + 3, z), Blocks.STONE_BRICK_SLAB.defaultBlockState(), 2);
+            }
+        }
+
+        placeBossAltarPillar(level, centerGround, -6, -65);
+        placeBossAltarPillar(level, centerGround, 6, -65);
+        placeBossAltarPillar(level, centerGround, -6, -55);
+        placeBossAltarPillar(level, centerGround, 6, -55);
+
+        for (int x = -6; x <= 6; x++) {
+            level.setBlock(at(centerGround, x, LOWER_CRYPT_CEILING_Y - 1, -65), Blocks.DEEPSLATE_TILES.defaultBlockState(), 2);
+            level.setBlock(at(centerGround, x, LOWER_CRYPT_CEILING_Y - 1, -55), Blocks.DEEPSLATE_TILES.defaultBlockState(), 2);
+        }
+
+        for (int z = -65; z <= -55; z++) {
+            level.setBlock(at(centerGround, -6, LOWER_CRYPT_CEILING_Y - 1, z), Blocks.DEEPSLATE_TILES.defaultBlockState(), 2);
+            level.setBlock(at(centerGround, 6, LOWER_CRYPT_CEILING_Y - 1, z), Blocks.DEEPSLATE_TILES.defaultBlockState(), 2);
+        }
+
+        for (int x = -3; x <= 3; x++) {
+            for (int z = centerZ - 1; z <= centerZ + 1; z++) {
+                level.setBlock(at(centerGround, x, LOWER_CRYPT_CEILING_Y - 1, z), Blocks.STONE_BRICKS.defaultBlockState(), 2);
+            }
+        }
+    }
+
+    private static void placeBossAltarPillar(ServerLevel level, BlockPos centerGround, int x, int z) {
+        int floor = LOWER_CRYPT_FLOOR_Y;
+        level.setBlock(at(centerGround, x, floor + 1, z), Blocks.CHISELED_STONE_BRICKS.defaultBlockState(), 2);
+        level.setBlock(at(centerGround, x, floor + 2, z), Blocks.POLISHED_DEEPSLATE.defaultBlockState(), 2);
+        level.setBlock(at(centerGround, x, floor + 3, z), Blocks.POLISHED_DEEPSLATE.defaultBlockState(), 2);
+        level.setBlock(at(centerGround, x, floor + 4, z), Blocks.POLISHED_DEEPSLATE.defaultBlockState(), 2);
+        level.setBlock(at(centerGround, x, floor + 5, z), Blocks.CHISELED_STONE_BRICKS.defaultBlockState(), 2);
+        level.setBlock(at(centerGround, x, floor + 6, z), Blocks.STONE_BRICK_SLAB.defaultBlockState(), 2);
+    }
+
+    private static void placeBossRoomLighting(ServerLevel level, BlockPos centerGround) {
+        for (int x : new int[] {-10, 10}) {
+            for (int z : new int[] {-66, -54}) {
+                level.setBlock(at(centerGround, x, LOWER_CRYPT_CEILING_Y, z), Blocks.SEA_LANTERN.defaultBlockState(), 2);
+                level.setBlock(at(centerGround, x, LOWER_CRYPT_FLOOR_Y + 1, z), candleStack(), 2);
+            }
+        }
+
+        for (int x : new int[] {-3, 3}) {
+            level.setBlock(at(centerGround, x, LOWER_CRYPT_CEILING_Y - 1, -60), Blocks.SEA_LANTERN.defaultBlockState(), 2);
+        }
+
+        level.setBlock(at(centerGround, -2, LOWER_CRYPT_FLOOR_Y + 4, -61), candleStack(), 2);
+        level.setBlock(at(centerGround, 2, LOWER_CRYPT_FLOOR_Y + 4, -61), candleStack(), 2);
+        level.setBlock(at(centerGround, -2, LOWER_CRYPT_FLOOR_Y + 4, -59), candleStack(), 2);
+        level.setBlock(at(centerGround, 2, LOWER_CRYPT_FLOOR_Y + 4, -59), candleStack(), 2);
     }
 
     private static void clearLowerCryptMobs(ServerLevel level, BlockPos centerGround) {
@@ -753,7 +845,7 @@ public final class SpawnGraveyardStructure {
     }
 
     private static void placeNecromancer(ServerLevel level, BlockPos centerGround) {
-        BlockPos bossPos = at(centerGround, 0, LOWER_CRYPT_FLOOR_Y + 1, -60);
+        BlockPos bossPos = at(centerGround, 0, LOWER_CRYPT_FLOOR_Y + 4, -60);
         AABB bossArea = new AABB(bossPos).inflate(12.0D);
         for (Skeleton skeleton : level.getEntitiesOfClass(Skeleton.class, bossArea, SpawnGraveyardStructure::isNecromancer)) {
             skeleton.discard();
