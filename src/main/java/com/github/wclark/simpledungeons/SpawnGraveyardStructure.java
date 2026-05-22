@@ -19,6 +19,7 @@ import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.CrossCollisionBlock;
 import net.minecraft.world.level.block.DirectionalBlock;
 import net.minecraft.world.level.block.StairBlock;
+import net.minecraft.world.level.block.entity.BarrelBlockEntity;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
@@ -463,13 +464,11 @@ public final class SpawnGraveyardStructure {
     private static void placeGrandLandingChamber(ServerLevel level, BlockPos centerGround) {
         for (int z = -30; z <= 0; z++) {
             for (int x = -4; x <= 4; x++) {
-                level.setBlock(at(centerGround, x, LOWER_CRYPT_FLOOR_Y, z), x == 0 && z % 7 == 0
-                        ? Blocks.SEA_LANTERN.defaultBlockState()
-                        : Blocks.POLISHED_DEEPSLATE.defaultBlockState(), 2);
+                level.setBlock(at(centerGround, x, LOWER_CRYPT_FLOOR_Y, z), Blocks.POLISHED_DEEPSLATE.defaultBlockState(), 2);
             }
         }
 
-        for (int z = -28; z <= -4; z += 8) {
+        for (int z : new int[] {-28, -20, -4}) {
             placeLowerPillar(level, centerGround, -12, z);
             placeLowerPillar(level, centerGround, 12, z);
             level.setBlock(at(centerGround, -4, LOWER_CRYPT_CEILING_Y, z), Blocks.SEA_LANTERN.defaultBlockState(), 2);
@@ -487,7 +486,7 @@ public final class SpawnGraveyardStructure {
     }
 
     private static void placeMainHallDetails(ServerLevel level, BlockPos centerGround) {
-        for (int z = -36; z <= 0; z += 6) {
+        for (int z : new int[] {-36, -30, -24, -6, 0}) {
             for (int x = -5; x <= 5; x++) {
                 if (Math.abs(x) == 5) {
                     level.setBlock(at(centerGround, x, LOWER_CRYPT_FLOOR_Y, z), Blocks.POLISHED_DEEPSLATE.defaultBlockState(), 2);
@@ -505,11 +504,20 @@ public final class SpawnGraveyardStructure {
             }
         }
 
-        level.setBlock(at(centerGround, -2, LOWER_CRYPT_FLOOR_Y + 4, -39), Blocks.BLACKSTONE.defaultBlockState(), 2);
-        level.setBlock(at(centerGround, 2, LOWER_CRYPT_FLOOR_Y + 4, -39), Blocks.BLACKSTONE.defaultBlockState(), 2);
-        level.setBlock(at(centerGround, 0, LOWER_CRYPT_FLOOR_Y + 2, -39), Blocks.BLACKSTONE.defaultBlockState(), 2);
+        for (int x = -3; x <= 3; x++) {
+            for (int y = LOWER_CRYPT_FLOOR_Y + 1; y <= LOWER_CRYPT_FLOOR_Y + 5; y++) {
+                level.setBlock(at(centerGround, x, y, -39), Blocks.DEEPSLATE_BRICKS.defaultBlockState(), 2);
+            }
+        }
+
+        level.setBlock(at(centerGround, -2, LOWER_CRYPT_FLOOR_Y + 5, -39), Blocks.BLACKSTONE.defaultBlockState(), 2);
+        level.setBlock(at(centerGround, 2, LOWER_CRYPT_FLOOR_Y + 5, -39), Blocks.BLACKSTONE.defaultBlockState(), 2);
+        level.setBlock(at(centerGround, 0, LOWER_CRYPT_FLOOR_Y + 3, -39), Blocks.BLACKSTONE.defaultBlockState(), 2);
         level.setBlock(at(centerGround, -1, LOWER_CRYPT_FLOOR_Y + 2, -39), Blocks.BLACKSTONE.defaultBlockState(), 2);
+        level.setBlock(at(centerGround, 0, LOWER_CRYPT_FLOOR_Y + 2, -39), Blocks.BLACKSTONE.defaultBlockState(), 2);
         level.setBlock(at(centerGround, 1, LOWER_CRYPT_FLOOR_Y + 2, -39), Blocks.BLACKSTONE.defaultBlockState(), 2);
+        level.setBlock(at(centerGround, -1, LOWER_CRYPT_FLOOR_Y + 1, -39), Blocks.BLACKSTONE.defaultBlockState(), 2);
+        level.setBlock(at(centerGround, 1, LOWER_CRYPT_FLOOR_Y + 1, -39), Blocks.BLACKSTONE.defaultBlockState(), 2);
     }
 
     private static void placeSideRooms(ServerLevel level, BlockPos centerGround, RandomSource random) {
@@ -558,8 +566,8 @@ public final class SpawnGraveyardStructure {
             }
         }
 
-        level.setBlock(at(centerGround, cx - 1, LOWER_CRYPT_FLOOR_Y + 1, cz), Blocks.BARREL.defaultBlockState(), 2);
-        level.setBlock(at(centerGround, cx + 1, LOWER_CRYPT_FLOOR_Y + 1, cz), Blocks.BARREL.defaultBlockState(), 2);
+        placeLootBarrel(level, centerGround, cx - 1, cz, random);
+        placeLootBarrel(level, centerGround, cx + 1, cz, random);
         level.setBlock(at(centerGround, cx, LOWER_CRYPT_FLOOR_Y + 1, cz - 3), Blocks.COBWEB.defaultBlockState(), 2);
         level.setBlock(at(centerGround, cx, LOWER_CRYPT_CEILING_Y, cz), Blocks.SEA_LANTERN.defaultBlockState(), 2);
         placeLootChest(level, centerGround, cx + 3, cz + 3, Direction.WEST, random);
@@ -605,7 +613,7 @@ public final class SpawnGraveyardStructure {
 
     private static void placeLowerCryptLighting(ServerLevel level, BlockPos centerGround) {
         int floor = LOWER_CRYPT_FLOOR_Y;
-        for (int z : new int[] {-13, -24, -29, -37}) {
+        for (int z : new int[] {-24, -29, -37}) {
             placeLowerLantern(level, centerGround, -1, floor + 1, z);
             placeLowerLantern(level, centerGround, 1, floor + 1, z);
         }
@@ -640,17 +648,35 @@ public final class SpawnGraveyardStructure {
         }
 
         chest.clearContent();
-        chest.setItem(0, new ItemStack(Items.BONE, 4 + random.nextInt(5)));
-        chest.setItem(4, new ItemStack(Items.ARROW, 6 + random.nextInt(9)));
-        chest.setItem(8, new ItemStack(Items.ROTTEN_FLESH, 2 + random.nextInt(5)));
-        chest.setItem(13, new ItemStack(random.nextBoolean() ? Items.IRON_INGOT : Items.GOLD_NUGGET, 1 + random.nextInt(3)));
+        int slot = 0;
+        chest.setItem(slot++, new ItemStack(Items.BONE, 4 + random.nextInt(5)));
+        chest.setItem(slot++, new ItemStack(Items.ARROW, 6 + random.nextInt(9)));
+        chest.setItem(slot++, new ItemStack(Items.ROTTEN_FLESH, 2 + random.nextInt(5)));
+        chest.setItem(slot++, new ItemStack(random.nextBoolean() ? Items.IRON_INGOT : Items.GOLD_NUGGET, 1 + random.nextInt(3)));
         if (random.nextFloat() < 0.45F) {
-            chest.setItem(18, new ItemStack(Items.LAPIS_LAZULI, 2 + random.nextInt(5)));
+            chest.setItem(slot++, new ItemStack(Items.LAPIS_LAZULI, 2 + random.nextInt(5)));
         }
         if (random.nextFloat() < 0.3F) {
-            chest.setItem(22, new ItemStack(Items.EMERALD, 1));
+            chest.setItem(slot, new ItemStack(Items.EMERALD, 1));
         }
         chest.setChanged();
+    }
+
+    private static void placeLootBarrel(ServerLevel level, BlockPos centerGround, int x, int z, RandomSource random) {
+        BlockPos pos = at(centerGround, x, LOWER_CRYPT_FLOOR_Y + 1, z);
+        level.setBlock(pos, Blocks.BARREL.defaultBlockState(), 2);
+        if (!(level.getBlockEntity(pos) instanceof BarrelBlockEntity barrel)) {
+            return;
+        }
+
+        barrel.clearContent();
+        barrel.setItem(0, new ItemStack(Items.COAL, 2 + random.nextInt(5)));
+        barrel.setItem(1, new ItemStack(Items.STICK, 3 + random.nextInt(5)));
+        barrel.setItem(2, new ItemStack(Items.BONE_MEAL, 2 + random.nextInt(4)));
+        if (random.nextBoolean()) {
+            barrel.setItem(3, new ItemStack(Items.BREAD, 1 + random.nextInt(2)));
+        }
+        barrel.setChanged();
     }
 
     private static void placeRoomMob(ServerLevel level, BlockPos centerGround, EntityType<? extends Mob> type, int x, int z) {
