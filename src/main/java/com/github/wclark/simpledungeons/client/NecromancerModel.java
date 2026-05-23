@@ -1,7 +1,5 @@
 package com.github.wclark.simpledungeons.client;
 
-import java.util.Set;
-
 import com.github.wclark.simpledungeons.NecromancerEntity;
 import com.github.wclark.simpledungeons.SimpleDungeons;
 
@@ -14,7 +12,6 @@ import net.minecraft.client.model.geom.builders.CubeListBuilder;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
-import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.neoforged.api.distmarker.Dist;
@@ -34,55 +31,53 @@ public class NecromancerModel extends HumanoidModel<NecromancerEntity> {
         MeshDefinition mesh = HumanoidModel.createMesh(CubeDeformation.NONE, 0.0F);
         PartDefinition root = mesh.getRoot();
 
-        PartDefinition head = root.addOrReplaceChild("head", CubeListBuilder.create(), PartPose.offset(0.0F, 0.0F, 0.0F));
-        root.addOrReplaceChild("hat", CubeListBuilder.create(), PartPose.offset(0.0F, 0.0F, 0.0F));
-        PartDefinition body = root.addOrReplaceChild("body", CubeListBuilder.create(), PartPose.offset(0.0F, 0.0F, 0.0F));
-        PartDefinition rightArm = root.addOrReplaceChild("right_arm", CubeListBuilder.create(), PartPose.offset(-5.0F, 2.0F, 0.0F));
-        PartDefinition leftArm = root.addOrReplaceChild("left_arm", CubeListBuilder.create(), PartPose.offset(5.0F, 2.0F, 0.0F));
-        PartDefinition rightLeg = root.addOrReplaceChild("right_leg", CubeListBuilder.create(), PartPose.offset(-1.9F, 12.0F, 0.0F));
-        PartDefinition leftLeg = root.addOrReplaceChild("left_leg", CubeListBuilder.create(), PartPose.offset(1.9F, 12.0F, 0.0F));
+        PartDefinition head = root.addOrReplaceChild(
+                "head",
+                CubeListBuilder.create()
+                        .texOffs(0, 0).addBox(-4.0F, -8.0F, -4.0F, 8.0F, 8.0F, 8.0F)
+                        .texOffs(40, 0).addBox(-5.0F, -10.0F, -5.0F, 10.0F, 2.0F, 10.0F)
+                        .texOffs(84, 0).addBox(-3.0F, -11.0F, -3.0F, 6.0F, 1.0F, 6.0F)
+                        .texOffs(112, 0).addBox(-1.0F, -10.4F, -5.55F, 2.0F, 2.0F, 1.0F)
+                        .texOffs(124, 0).addBox(-5.55F, -9.8F, -1.0F, 1.0F, 2.0F, 2.0F)
+                        .texOffs(124, 0).mirror().addBox(4.55F, -9.8F, -1.0F, 1.0F, 2.0F, 2.0F)
+                        .mirror(false)
+                        .texOffs(136, 0).addBox(-4.35F, -4.5F, -4.6F, 1.0F, 6.0F, 1.0F)
+                        .texOffs(136, 0).mirror().addBox(3.35F, -4.5F, -4.6F, 1.0F, 6.0F, 1.0F),
+                PartPose.ZERO);
+        root.addOrReplaceChild("hat", CubeListBuilder.create(), PartPose.ZERO);
 
-        head.addOrReplaceChild(
-                "sheet_head_front",
-                face(0, 0, -4.0F, -13.0F, -4.6F, 8.0F, 17.0F, 1.0F, Direction.NORTH),
-                PartPose.ZERO);
-        head.addOrReplaceChild(
-                "sheet_head_back",
-                face(20, 0, -4.0F, -8.0F, 3.6F, 8.0F, 8.0F, 1.0F, Direction.SOUTH),
-                PartPose.ZERO);
-        head.addOrReplaceChild(
-                "sheet_head_left",
-                face(40, 0, -4.6F, -12.0F, -4.0F, 1.0F, 15.0F, 8.0F, Direction.WEST),
-                PartPose.ZERO);
-        head.addOrReplaceChild(
-                "sheet_head_right",
-                face(60, 0, 3.6F, -12.0F, -4.0F, 1.0F, 15.0F, 8.0F, Direction.EAST),
+        PartDefinition body = root.addOrReplaceChild(
+                "body",
+                CubeListBuilder.create()
+                        .texOffs(0, 32).addBox(-4.0F, 0.0F, -2.0F, 8.0F, 8.0F, 4.0F)
+                        .texOffs(32, 32).addBox(-5.0F, 8.0F, -2.5F, 10.0F, 14.0F, 5.0F, new CubeDeformation(0.05F))
+                        .texOffs(70, 32).addBox(-2.0F, 8.0F, -3.05F, 4.0F, 14.0F, 1.0F)
+                        .texOffs(88, 32).addBox(-5.0F, 0.0F, 2.35F, 10.0F, 20.0F, 1.0F)
+                        .texOffs(112, 64).addBox(-4.5F, 6.5F, -2.75F, 9.0F, 2.0F, 5.0F)
+                        .texOffs(116, 32).addBox(-8.0F, -1.0F, -3.0F, 4.0F, 3.0F, 6.0F)
+                        .texOffs(116, 32).mirror().addBox(4.0F, -1.0F, -3.0F, 4.0F, 3.0F, 6.0F),
                 PartPose.ZERO);
 
-        body.addOrReplaceChild(
-                "sheet_body_front",
-                face(80, 0, -12.0F, -2.0F, -3.7F, 24.0F, 26.0F, 1.0F, Direction.NORTH),
-                PartPose.ZERO);
-        body.addOrReplaceChild(
-                "sheet_body_back",
-                face(132, 0, -13.0F, -2.0F, 3.7F, 26.0F, 26.0F, 1.0F, Direction.SOUTH),
-                PartPose.ZERO);
-        rightArm.addOrReplaceChild(
-                "sheet_right_arm",
-                face(208, 0, -4.0F, -2.0F, -2.7F, 8.0F, 16.0F, 1.0F, Direction.NORTH),
-                PartPose.ZERO);
-        leftArm.addOrReplaceChild(
-                "sheet_left_arm",
-                face(188, 0, -4.0F, -2.0F, -2.7F, 8.0F, 16.0F, 1.0F, Direction.NORTH),
-                PartPose.ZERO);
-        rightLeg.addOrReplaceChild(
-                "sheet_right_leg",
-                face(0, 29, -4.0F, 0.0F, -2.6F, 8.0F, 16.0F, 1.0F, Direction.NORTH),
-                PartPose.ZERO);
-        leftLeg.addOrReplaceChild(
-                "sheet_left_leg",
-                face(228, 0, -4.0F, 0.0F, -2.6F, 8.0F, 16.0F, 1.0F, Direction.NORTH),
-                PartPose.ZERO);
+        PartDefinition rightArm = root.addOrReplaceChild(
+                "right_arm",
+                CubeListBuilder.create()
+                        .texOffs(0, 64).addBox(-1.5F, -2.0F, -1.5F, 3.0F, 12.0F, 3.0F)
+                        .texOffs(32, 64).addBox(-2.25F, -2.25F, -2.0F, 5.0F, 7.0F, 4.0F),
+                PartPose.offset(-5.0F, 2.0F, 0.0F));
+        PartDefinition leftArm = root.addOrReplaceChild(
+                "left_arm",
+                CubeListBuilder.create()
+                        .texOffs(16, 64).mirror().addBox(-1.5F, -2.0F, -1.5F, 3.0F, 12.0F, 3.0F)
+                        .texOffs(54, 64).mirror().addBox(-2.75F, -2.25F, -2.0F, 5.0F, 7.0F, 4.0F),
+                PartPose.offset(5.0F, 2.0F, 0.0F));
+        root.addOrReplaceChild(
+                "right_leg",
+                CubeListBuilder.create().texOffs(80, 64).addBox(-1.5F, 0.0F, -1.5F, 3.0F, 12.0F, 3.0F),
+                PartPose.offset(-1.9F, 12.0F, 0.0F));
+        root.addOrReplaceChild(
+                "left_leg",
+                CubeListBuilder.create().texOffs(96, 64).mirror().addBox(-1.5F, 0.0F, -1.5F, 3.0F, 12.0F, 3.0F),
+                PartPose.offset(1.9F, 12.0F, 0.0F));
 
         return LayerDefinition.create(mesh, 256, 256);
     }
@@ -100,11 +95,5 @@ public class NecromancerModel extends HumanoidModel<NecromancerEntity> {
             this.leftArm.yRot = 0.3F;
             this.leftArm.zRot = -0.12F;
         }
-    }
-
-    private static CubeListBuilder face(int texU, int texV, float x, float y, float z, float width, float height, float depth, Direction direction) {
-        return CubeListBuilder.create()
-                .texOffs(texU, texV)
-                .addBox(x, y, z, width, height, depth, Set.of(direction));
     }
 }
