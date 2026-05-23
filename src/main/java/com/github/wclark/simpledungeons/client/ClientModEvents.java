@@ -1,0 +1,22 @@
+package com.github.wclark.simpledungeons.client;
+
+import com.github.wclark.simpledungeons.ModEntities;
+import com.github.wclark.simpledungeons.SimpleDungeons;
+
+import net.minecraft.client.renderer.entity.ThrownItemRenderer;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+
+@EventBusSubscriber(modid = SimpleDungeons.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+public final class ClientModEvents {
+    private ClientModEvents() {
+    }
+
+    @SubscribeEvent
+    public static void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerEntityRenderer(ModEntities.NECROMANCER.get(), NecromancerRenderer::new);
+        event.registerEntityRenderer(ModEntities.BLUE_ORB.get(), context -> new ThrownItemRenderer<>(context, 1.1F, true));
+    }
+}

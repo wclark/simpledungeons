@@ -494,8 +494,8 @@ public final class SpawnGraveyardStructure {
         }
 
         for (int x = -2; x <= 2; x++) {
-            level.setBlock(at(centerGround, x, floor + 1, -54), stair(Direction.SOUTH), 2);
-            level.setBlock(at(centerGround, x, floor + 1, -66), stair(Direction.NORTH), 2);
+            level.setBlock(at(centerGround, x, floor + 1, -54), stair(Direction.NORTH), 2);
+            level.setBlock(at(centerGround, x, floor + 1, -66), stair(Direction.SOUTH), 2);
         }
 
         for (int z = -63; z <= -57; z += 6) {
@@ -847,18 +847,22 @@ public final class SpawnGraveyardStructure {
     private static void placeNecromancer(ServerLevel level, BlockPos centerGround) {
         BlockPos bossPos = at(centerGround, 0, LOWER_CRYPT_FLOOR_Y + 4, -60);
         AABB bossArea = new AABB(bossPos).inflate(12.0D);
+        for (NecromancerEntity necromancer : level.getEntitiesOfClass(NecromancerEntity.class, bossArea)) {
+            necromancer.discard();
+        }
+
         for (Skeleton skeleton : level.getEntitiesOfClass(Skeleton.class, bossArea, SpawnGraveyardStructure::isNecromancer)) {
             skeleton.discard();
         }
 
-        Skeleton necromancer = EntityType.SKELETON.create(level);
+        NecromancerEntity necromancer = ModEntities.NECROMANCER.get().create(level);
         if (necromancer == null) {
             return;
         }
 
         necromancer.moveTo(bossPos.getX() + 0.5D, bossPos.getY(), bossPos.getZ() + 0.5D, 180.0F, 0.0F);
         necromancer.finalizeSpawn(level, level.getCurrentDifficultyAt(bossPos), MobSpawnType.STRUCTURE, null);
-        necromancer.setCustomName(Component.literal("Necromancer"));
+        necromancer.setCustomName(Component.translatable("entity.simpledungeons.necromancer"));
         necromancer.setCustomNameVisible(true);
         necromancer.setPersistenceRequired();
         level.addFreshEntity(necromancer);

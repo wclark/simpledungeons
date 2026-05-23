@@ -4,5 +4,8 @@
   "simpledungeons.configuration.enableCaveDungeon": "Generate cave-bound dungeons",
   "simpledungeons.configuration.skyIslandAverageSpacing": "Sky island dungeon spacing",
   "simpledungeons.configuration.surfaceCryptAverageSpacing": "Surface crypt dungeon spacing",
-  "simpledungeons.configuration.caveDungeonAverageSpacing": "Cave-bound dungeon spacing"
+  "simpledungeons.configuration.caveDungeonAverageSpacing": "Cave-bound dungeon spacing",
+  "entity.simpledungeons.necromancer": "Necromancer",
+  "item.simpledungeons.summoners_staff": "Summoners Staff",
+  "death.attack.simpledungeons.blue_orb": "%1$s was slain by %2$s using magic"
 }
