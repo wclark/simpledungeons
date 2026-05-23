@@ -89,6 +89,20 @@ public class NecromancerModel extends HumanoidModel<NecromancerEntity> {
         this.rightArm.yRot = -0.12F;
         this.rightArm.zRot = 0.0F;
 
+        if (necromancer.isSummoning()) {
+            this.rightArm.z = 0.0F;
+            this.rightArm.x = -5.0F;
+            this.leftArm.z = 0.0F;
+            this.leftArm.x = 5.0F;
+            this.rightArm.xRot = Mth.cos(ageInTicks * 0.6662F) * 0.25F;
+            this.leftArm.xRot = Mth.cos(ageInTicks * 0.6662F) * 0.25F;
+            this.rightArm.yRot = 0.0F;
+            this.leftArm.yRot = 0.0F;
+            this.rightArm.zRot = (float) (Math.PI * 3.0D / 4.0D);
+            this.leftArm.zRot = (float) (-Math.PI * 3.0D / 4.0D);
+            return;
+        }
+
         if (necromancer.isAggressive()) {
             this.rightArm.xRot = -Mth.HALF_PI + Mth.sin(ageInTicks * 0.45F) * 0.03F;
             this.leftArm.xRot = -1.15F;

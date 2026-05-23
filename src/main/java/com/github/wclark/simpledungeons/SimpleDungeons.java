@@ -30,6 +30,7 @@ public class SimpleDungeons {
         modEventBus.addListener(this::registerEntityAttributes);
         NeoForge.EVENT_BUS.register(this);
         NeoForge.EVENT_BUS.register(new GraveyardUndeadSpawner());
+        NeoForge.EVENT_BUS.register(new UndeadSummons());
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }
 

@@ -18,7 +18,7 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
 public class BlueOrbEntity extends ThrowableItemProjectile {
-    private static final int LIFETIME_TICKS = 80;
+    private static final int LIFETIME_TICKS = 120;
     private static final double KNOCKBACK_STRENGTH = 0.3D;
 
     public BlueOrbEntity(EntityType<? extends BlueOrbEntity> type, Level level) {

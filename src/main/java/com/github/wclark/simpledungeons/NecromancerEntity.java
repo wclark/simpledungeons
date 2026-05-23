@@ -2,10 +2,16 @@ package com.github.wclark.simpledungeons;
 
 import javax.annotation.Nullable;
 
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
@@ -33,6 +39,14 @@ public class NecromancerEntity extends Monster implements RangedAttackMob {
     private static final int ATTACK_INTERVAL_TICKS = 20;
     private static final float ATTACK_RANGE_BLOCKS = 24.0F;
     private static final float ORB_SPEED = 0.25F;
+    private static final int SUMMON_CAST_TICKS = 40;
+    private static final int SUMMON_RELEASE_TICK = 18;
+    private static final EntityDataAccessor<Boolean> DATA_SUMMONING = SynchedEntityData.defineId(
+            NecromancerEntity.class,
+            EntityDataSerializers.BOOLEAN);
+    private int summonCooldownTicks;
+    private int summonCastTicks;
+    private boolean summonReleased;
 
     public NecromancerEntity(EntityType<? extends NecromancerEntity> type, Level level) {
         super(type, level);
@@ -41,10 +55,16 @@ public class NecromancerEntity extends Monster implements RangedAttackMob {
 
     public static AttributeSupplier.Builder createAttributes() {
         return Monster.createMonsterAttributes()
-                .add(Attributes.MAX_HEALTH, 40.0D)
+                .add(Attributes.MAX_HEALTH, 100.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.23D)
                 .add(Attributes.FOLLOW_RANGE, 32.0D)
                 .add(Attributes.ATTACK_DAMAGE, 3.0D);
+    }
+
+    @Override
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(DATA_SUMMONING, false);
     }
 
     @Override
@@ -64,6 +84,9 @@ public class NecromancerEntity extends Monster implements RangedAttackMob {
         super.aiStep();
         LivingEntity target = this.getTarget();
         this.setAggressive(target != null && target.isAlive());
+        if (!this.level().isClientSide && this.level() instanceof ServerLevel serverLevel) {
+            this.tickSummoning(serverLevel, target);
+        }
     }
 
     @Override
@@ -81,19 +104,101 @@ public class NecromancerEntity extends Monster implements RangedAttackMob {
 
     @Override
     public void performRangedAttack(LivingEntity target, float velocityScale) {
-        if (!(this.level() instanceof ServerLevel serverLevel)) {
+        if (this.isSummoning() || !(this.level() instanceof ServerLevel serverLevel)) {
             return;
         }
 
         this.swing(InteractionHand.MAIN_HAND);
         BlueOrbEntity orb = new BlueOrbEntity(serverLevel, this);
-        double x = target.getX() - this.getX();
-        double y = target.getEyeY() - orb.getY();
-        double z = target.getZ() - this.getZ();
-        double horizontalDistance = Math.sqrt(x * x + z * z);
-        orb.shoot(x, y + horizontalDistance * 0.08D, z, ORB_SPEED, 0.25F);
+        orb.setPos(this.getX(), this.getEyeY() - 0.15D, this.getZ());
+        Vec3 targetEye = target.getEyePosition();
+        double distance = orb.position().distanceTo(targetEye);
+        double leadTicks = Math.min(18.0D, distance / ORB_SPEED * 0.35D);
+        Vec3 predictedTarget = targetEye.add(target.getDeltaMovement().scale(leadTicks));
+        Vec3 aim = predictedTarget.subtract(orb.position());
+        orb.shoot(aim.x, aim.y, aim.z, ORB_SPEED, 0.0F);
         serverLevel.addFreshEntity(orb);
         serverLevel.playSound(null, this.blockPosition(), SoundEvents.EVOKER_CAST_SPELL, SoundSource.HOSTILE, 0.8F, 1.2F);
+    }
+
+    public boolean isSummoning() {
+        return this.entityData.get(DATA_SUMMONING);
+    }
+
+    private void setSummoning(boolean summoning) {
+        this.entityData.set(DATA_SUMMONING, summoning);
+    }
+
+    private void tickSummoning(ServerLevel level, @Nullable LivingEntity target) {
+        if (summonCooldownTicks > 0) {
+            summonCooldownTicks--;
+        }
+
+        if (summonCastTicks > 0) {
+            setSummoning(true);
+            this.getNavigation().stop();
+            if (target != null) {
+                this.getLookControl().setLookAt(target, 30.0F, 30.0F);
+            }
+
+            if (summonCastTicks % 2 == 0) {
+                level.sendParticles(
+                        ParticleTypes.ENCHANT,
+                        this.getX(),
+                        this.getY() + 1.15D,
+                        this.getZ(),
+                        12,
+                        0.7D,
+                        0.8D,
+                        0.7D,
+                        0.35D);
+            }
+
+            summonCastTicks--;
+            if (!summonReleased && summonCastTicks <= SUMMON_RELEASE_TICK) {
+                summonReleased = true;
+                summonUndead(level, target);
+            }
+
+            if (summonCastTicks <= 0) {
+                setSummoning(false);
+                summonReleased = false;
+                summonCooldownTicks = 100 + this.getRandom().nextInt(101);
+            }
+            return;
+        }
+
+        setSummoning(false);
+        if (target != null && target.isAlive() && summonCooldownTicks <= 0) {
+            startSummoning(level);
+        }
+    }
+
+    private void startSummoning(ServerLevel level) {
+        summonCastTicks = SUMMON_CAST_TICKS;
+        summonReleased = false;
+        setSummoning(true);
+        this.swing(InteractionHand.MAIN_HAND);
+        level.playSound(null, this.blockPosition(), SoundEvents.EVOKER_PREPARE_SUMMON, SoundSource.HOSTILE, 0.9F, 0.85F);
+    }
+
+    private void summonUndead(ServerLevel level, @Nullable LivingEntity target) {
+        BlockPos focus = target == null ? this.blockPosition() : target.blockPosition();
+        for (int i = 0; i < 2; i++) {
+            int dx = this.getRandom().nextInt(7) - 3;
+            int dz = this.getRandom().nextInt(7) - 3;
+            if (Math.abs(dx) < 2 && Math.abs(dz) < 2) {
+                dx += dx < 0 ? -2 : 2;
+            }
+
+            UndeadSummons.spawnNecromancerUndead(
+                    level,
+                    focus.offset(dx, 0, dz),
+                    this.getRandom().nextBoolean(),
+                    this.getRandom());
+        }
+
+        level.playSound(null, this.blockPosition(), SoundEvents.EVOKER_CAST_SPELL, SoundSource.HOSTILE, 0.9F, 1.0F);
     }
 
     private void equipStaff() {
