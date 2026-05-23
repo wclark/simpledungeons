@@ -1,5 +1,7 @@
 package com.github.wclark.simpledungeons.client;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+
 import com.github.wclark.simpledungeons.NecromancerEntity;
 import com.github.wclark.simpledungeons.SimpleDungeons;
 
@@ -14,11 +16,16 @@ public class NecromancerRenderer extends HumanoidMobRenderer<NecromancerEntity, 
     private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(SimpleDungeons.MODID, "textures/entity/necromancer.png");
 
     public NecromancerRenderer(EntityRendererProvider.Context context) {
-        super(context, new NecromancerModel(context.bakeLayer(NecromancerModel.LAYER_LOCATION)), 0.5F);
+        super(context, new NecromancerModel(context.bakeLayer(NecromancerModel.LAYER_LOCATION)), 0.45F);
     }
 
     @Override
     public ResourceLocation getTextureLocation(NecromancerEntity necromancer) {
         return TEXTURE;
+    }
+
+    @Override
+    protected void scale(NecromancerEntity necromancer, PoseStack poseStack, float partialTick) {
+        poseStack.scale(0.73F, 0.73F, 0.73F);
     }
 }

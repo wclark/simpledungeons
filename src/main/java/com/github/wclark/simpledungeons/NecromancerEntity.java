@@ -32,7 +32,7 @@ import net.minecraft.world.level.ServerLevelAccessor;
 public class NecromancerEntity extends Monster implements RangedAttackMob {
     private static final int ATTACK_INTERVAL_TICKS = 20;
     private static final float ATTACK_RANGE_BLOCKS = 24.0F;
-    private static final float ORB_SPEED = 1.55F;
+    private static final float ORB_SPEED = 0.75F;
 
     public NecromancerEntity(EntityType<? extends NecromancerEntity> type, Level level) {
         super(type, level);

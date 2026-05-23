@@ -555,18 +555,15 @@ public final class SpawnGraveyardStructure {
     }
 
     private static void clearLowerCryptMobs(ServerLevel level, BlockPos centerGround) {
-        AABB area = new AABB(
-                centerGround.getX() + LOWER_CRYPT_MIN_X,
-                centerGround.getY() + LOWER_CRYPT_FLOOR_Y,
-                centerGround.getZ() + LOWER_CRYPT_MIN_Z,
-                centerGround.getX() + LOWER_CRYPT_MAX_X + 1,
-                centerGround.getY() + LOWER_CRYPT_CEILING_Y + 3,
-                centerGround.getZ() + LOWER_CRYPT_MAX_Z + 1);
+        AABB area = lowerCryptArea(centerGround);
         for (Skeleton skeleton : level.getEntitiesOfClass(Skeleton.class, area)) {
             skeleton.discard();
         }
         for (Zombie zombie : level.getEntitiesOfClass(Zombie.class, area)) {
             zombie.discard();
+        }
+        for (NecromancerEntity necromancer : level.getEntitiesOfClass(NecromancerEntity.class, area)) {
+            necromancer.discard();
         }
     }
 
@@ -846,12 +843,12 @@ public final class SpawnGraveyardStructure {
 
     private static void placeNecromancer(ServerLevel level, BlockPos centerGround) {
         BlockPos bossPos = at(centerGround, 0, LOWER_CRYPT_FLOOR_Y + 4, -60);
-        AABB bossArea = new AABB(bossPos).inflate(12.0D);
-        for (NecromancerEntity necromancer : level.getEntitiesOfClass(NecromancerEntity.class, bossArea)) {
+        AABB graveyardArea = lowerCryptArea(centerGround);
+        for (NecromancerEntity necromancer : level.getEntitiesOfClass(NecromancerEntity.class, graveyardArea)) {
             necromancer.discard();
         }
 
-        for (Skeleton skeleton : level.getEntitiesOfClass(Skeleton.class, bossArea, SpawnGraveyardStructure::isNecromancer)) {
+        for (Skeleton skeleton : level.getEntitiesOfClass(Skeleton.class, graveyardArea, SpawnGraveyardStructure::isNecromancer)) {
             skeleton.discard();
         }
 
@@ -870,6 +867,16 @@ public final class SpawnGraveyardStructure {
 
     private static boolean isNecromancer(Skeleton skeleton) {
         return skeleton.hasCustomName() && "Necromancer".equals(skeleton.getCustomName().getString());
+    }
+
+    private static AABB lowerCryptArea(BlockPos centerGround) {
+        return new AABB(
+                centerGround.getX() + LOWER_CRYPT_MIN_X,
+                centerGround.getY() + LOWER_CRYPT_FLOOR_Y,
+                centerGround.getZ() + LOWER_CRYPT_MIN_Z,
+                centerGround.getX() + LOWER_CRYPT_MAX_X + 1,
+                centerGround.getY() + LOWER_CRYPT_CEILING_Y + 3,
+                centerGround.getZ() + LOWER_CRYPT_MAX_Z + 1);
     }
 
     private static void placeDetails(ServerLevel level, BlockPos centerGround, RandomSource random) {

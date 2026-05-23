@@ -19,7 +19,7 @@ import net.minecraft.world.phys.Vec3;
 
 public class BlueOrbEntity extends ThrowableItemProjectile {
     private static final int LIFETIME_TICKS = 80;
-    private static final double KNOCKBACK_STRENGTH = 0.6D;
+    private static final double KNOCKBACK_STRENGTH = 0.3D;
 
     public BlueOrbEntity(EntityType<? extends BlueOrbEntity> type, Level level) {
         super(type, level);
@@ -89,7 +89,7 @@ public class BlueOrbEntity extends ThrowableItemProjectile {
         Vec3 away = target.position().subtract(source);
         double horizontalDistance = away.horizontalDistance();
         if (horizontalDistance > 0.0D) {
-            target.push(away.x / horizontalDistance * KNOCKBACK_STRENGTH, 0.1D, away.z / horizontalDistance * KNOCKBACK_STRENGTH);
+            target.push(away.x / horizontalDistance * KNOCKBACK_STRENGTH, 0.05D, away.z / horizontalDistance * KNOCKBACK_STRENGTH);
         }
     }
 }
