@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "simpledungeons:magic_bone"
+    }
+  ],
+  "result": {
+    "count": 4,
+    "id": "simpledungeons:magic_bonemeal"
+  }
+}

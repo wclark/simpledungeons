@@ -6,6 +6,8 @@
   "simpledungeons.configuration.surfaceCryptAverageSpacing": "Surface crypt dungeon spacing",
   "simpledungeons.configuration.caveDungeonAverageSpacing": "Cave-bound dungeon spacing",
   "entity.simpledungeons.necromancer": "Necromancer",
+  "item.simpledungeons.magic_bone": "Magic Bone",
+  "item.simpledungeons.magic_bonemeal": "Magic Bonemeal",
   "item.simpledungeons.summoners_staff": "Summoners Staff",
   "death.attack.simpledungeons.blue_orb": "%1$s was slain by %2$s using magic"
 }

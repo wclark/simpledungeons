@@ -11,9 +11,9 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -34,6 +34,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.phys.Vec3;
 
 public class NecromancerEntity extends Monster implements RangedAttackMob {
     private static final int ATTACK_INTERVAL_TICKS = 20;
@@ -204,5 +205,16 @@ public class NecromancerEntity extends Monster implements RangedAttackMob {
     private void equipStaff() {
         this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(ModItems.SUMMONERS_STAFF.get()));
         this.setDropChance(EquipmentSlot.MAINHAND, 0.0F);
+    }
+
+    @Override
+    protected void dropCustomDeathLoot(ServerLevel level, DamageSource damageSource, boolean killedByPlayer) {
+        super.dropCustomDeathLoot(level, damageSource, killedByPlayer);
+        RandomSource random = this.getRandom();
+        if (random.nextFloat() < 0.66F) {
+            this.spawnAtLocation(new ItemStack(ModItems.SUMMONERS_STAFF.get()));
+        }
+
+        this.spawnAtLocation(new ItemStack(ModItems.MAGIC_BONE.get(), 3 + random.nextInt(3)));
     }
 }

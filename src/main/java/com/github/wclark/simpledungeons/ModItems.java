@@ -17,6 +17,12 @@ public final class ModItems {
                     .stacksTo(1)
                     .rarity(Rarity.RARE)
                     .attributes(AxeItem.createAttributes(Tiers.STONE, 7.0F, -3.2F))));
+    public static final DeferredItem<MagicBoneItem> MAGIC_BONE = ITEMS.register(
+            "magic_bone",
+            () -> new MagicBoneItem(new Item.Properties().rarity(Rarity.UNCOMMON)));
+    public static final DeferredItem<MagicBonemealItem> MAGIC_BONEMEAL = ITEMS.register(
+            "magic_bonemeal",
+            () -> new MagicBonemealItem(new Item.Properties().durability(3).rarity(Rarity.UNCOMMON)));
 
     private ModItems() {
     }

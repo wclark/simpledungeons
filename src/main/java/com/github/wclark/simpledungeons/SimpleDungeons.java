@@ -46,6 +46,10 @@ public class SimpleDungeons {
         if (event.getTabKey() == CreativeModeTabs.COMBAT) {
             event.accept(new ItemStack(ModItems.SUMMONERS_STAFF.get()));
         }
+        if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
+            event.accept(new ItemStack(ModItems.MAGIC_BONE.get()));
+            event.accept(new ItemStack(ModItems.MAGIC_BONEMEAL.get()));
+        }
     }
 
     private void registerEntityAttributes(EntityAttributeCreationEvent event) {
