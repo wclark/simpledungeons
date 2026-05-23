@@ -54,11 +54,19 @@ public class NecromancerModel extends SkeletonModel<NecromancerEntity> {
                 "front_gem",
                 CubeListBuilder.create().texOffs(42, 32).addBox(-1.0F, -9.1F, -5.05F, 2.0F, 2.0F, 1.0F),
                 PartPose.ZERO);
+        head.addOrReplaceChild(
+                "left_crown_gem",
+                CubeListBuilder.create().texOffs(48, 32).addBox(-5.05F, -7.6F, -1.0F, 1.0F, 2.0F, 2.0F),
+                PartPose.ZERO);
+        head.addOrReplaceChild(
+                "right_crown_gem",
+                CubeListBuilder.create().texOffs(48, 36).mirror().addBox(4.05F, -7.6F, -1.0F, 1.0F, 2.0F, 2.0F),
+                PartPose.ZERO);
 
         PartDefinition body = root.getChild("body");
         body.addOrReplaceChild(
                 "robe",
-                CubeListBuilder.create().texOffs(64, 16).addBox(-4.5F, 0.0F, -2.6F, 9.0F, 20.0F, 5.0F, new CubeDeformation(0.04F)),
+                CubeListBuilder.create().texOffs(64, 16).addBox(-4.8F, 8.0F, -2.6F, 9.6F, 13.0F, 5.0F, new CubeDeformation(0.04F)),
                 PartPose.ZERO);
         body.addOrReplaceChild(
                 "cape",
@@ -66,7 +74,23 @@ public class NecromancerModel extends SkeletonModel<NecromancerEntity> {
                 PartPose.ZERO);
         body.addOrReplaceChild(
                 "front_apron",
-                CubeListBuilder.create().texOffs(96, 48).addBox(-2.6F, 5.0F, -3.05F, 5.2F, 16.0F, 1.0F),
+                CubeListBuilder.create().texOffs(96, 48).addBox(-2.6F, 7.8F, -3.05F, 5.2F, 13.2F, 1.0F),
+                PartPose.ZERO);
+        body.addOrReplaceChild(
+                "belt",
+                CubeListBuilder.create().texOffs(0, 96).addBox(-4.4F, 6.0F, -2.75F, 8.8F, 2.4F, 5.4F),
+                PartPose.ZERO);
+        body.addOrReplaceChild(
+                "belt_gem",
+                CubeListBuilder.create().texOffs(30, 96).addBox(-1.0F, 6.25F, -3.15F, 2.0F, 2.0F, 1.0F),
+                PartPose.ZERO);
+        body.addOrReplaceChild(
+                "right_skirt_edge",
+                CubeListBuilder.create().texOffs(36, 96).addBox(-4.9F, 8.0F, -2.85F, 1.3F, 13.4F, 5.4F),
+                PartPose.ZERO);
+        body.addOrReplaceChild(
+                "left_skirt_edge",
+                CubeListBuilder.create().texOffs(50, 96).mirror().addBox(3.6F, 8.0F, -2.85F, 1.3F, 13.4F, 5.4F),
                 PartPose.ZERO);
         body.addOrReplaceChild(
                 "right_shoulder",
@@ -83,6 +107,26 @@ public class NecromancerModel extends SkeletonModel<NecromancerEntity> {
         body.addOrReplaceChild(
                 "left_cape_edge",
                 CubeListBuilder.create().texOffs(112, 72).mirror().addBox(4.45F, 1.0F, 0.6F, 1.0F, 19.0F, 2.8F),
+                PartPose.ZERO);
+
+        PartDefinition rightArm = root.getChild("right_arm");
+        rightArm.addOrReplaceChild(
+                "right_sleeve",
+                CubeListBuilder.create().texOffs(64, 96).addBox(-1.6F, -2.2F, -1.6F, 3.2F, 6.8F, 3.2F),
+                PartPose.ZERO);
+        rightArm.addOrReplaceChild(
+                "right_cuff",
+                CubeListBuilder.create().texOffs(80, 96).addBox(-1.4F, 4.2F, -1.4F, 2.8F, 1.3F, 2.8F),
+                PartPose.ZERO);
+
+        PartDefinition leftArm = root.getChild("left_arm");
+        leftArm.addOrReplaceChild(
+                "left_sleeve",
+                CubeListBuilder.create().texOffs(64, 106).mirror().addBox(-1.6F, -2.2F, -1.6F, 3.2F, 6.8F, 3.2F),
+                PartPose.ZERO);
+        leftArm.addOrReplaceChild(
+                "left_cuff",
+                CubeListBuilder.create().texOffs(80, 106).mirror().addBox(-1.4F, 4.2F, -1.4F, 2.8F, 1.3F, 2.8F),
                 PartPose.ZERO);
 
         return LayerDefinition.create(mesh, 128, 128);
