@@ -9,13 +9,13 @@
   "display": {
     "thirdperson_righthand": {
       "rotation": [0, 0, 0],
-      "translation": [0, 5.5, 2.25],
-      "scale": [0.82, 0.82, 0.82]
+      "translation": [0, 1.5, 2.25],
+      "scale": [0.68, 0.68, 0.68]
     },
     "thirdperson_lefthand": {
       "rotation": [0, 0, 0],
-      "translation": [0, 5.5, 2.25],
-      "scale": [0.82, 0.82, 0.82]
+      "translation": [0, 1.5, 2.25],
+      "scale": [0.68, 0.68, 0.68]
     },
     "firstperson_righthand": {
       "rotation": [0, -20, 0],
@@ -44,8 +44,8 @@
   },
   "elements": [
     {
-      "from": [7.25, 0, 7.25],
-      "to": [8.75, 16, 8.75],
+      "from": [7.25, -26, 7.25],
+      "to": [8.75, 22, 8.75],
       "faces": {
         "north": {"uv": [0, 0, 4, 4], "texture": "#dark_purple"},
         "east": {"uv": [0, 0, 4, 4], "texture": "#dark_purple"},
@@ -56,8 +56,8 @@
       }
     },
     {
-      "from": [6.5, 12.5, 6.5],
-      "to": [9.5, 15.5, 9.5],
+      "from": [6.5, 18.5, 6.5],
+      "to": [9.5, 21.5, 9.5],
       "faces": {
         "north": {"uv": [4, 0, 8, 4], "texture": "#cyan"},
         "east": {"uv": [4, 0, 8, 4], "texture": "#cyan"},
@@ -68,8 +68,8 @@
       }
     },
     {
-      "from": [5.25, 14.5, 5.25],
-      "to": [10.75, 19.25, 10.75],
+      "from": [5.25, 20.5, 5.25],
+      "to": [10.75, 25.25, 10.75],
       "faces": {
         "north": {"uv": [4, 0, 8, 4], "texture": "#cyan"},
         "east": {"uv": [4, 0, 8, 4], "texture": "#cyan"},
@@ -80,8 +80,8 @@
       }
     },
     {
-      "from": [4.25, 13.75, 7],
-      "to": [5.5, 17.5, 9],
+      "from": [4.25, 19.75, 7],
+      "to": [5.5, 23.5, 9],
       "faces": {
         "north": {"uv": [4, 0, 8, 4], "texture": "#cyan"},
         "east": {"uv": [4, 0, 8, 4], "texture": "#cyan"},
@@ -92,8 +92,8 @@
       }
     },
     {
-      "from": [10.5, 13.75, 7],
-      "to": [11.75, 17.5, 9],
+      "from": [10.5, 19.75, 7],
+      "to": [11.75, 23.5, 9],
       "faces": {
         "north": {"uv": [4, 0, 8, 4], "texture": "#cyan"},
         "east": {"uv": [4, 0, 8, 4], "texture": "#cyan"},

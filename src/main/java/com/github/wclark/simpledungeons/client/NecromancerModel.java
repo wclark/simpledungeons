@@ -58,22 +58,34 @@ public class NecromancerModel extends SkeletonModel<NecromancerEntity> {
         PartDefinition body = root.getChild("body");
         body.addOrReplaceChild(
                 "robe",
-                CubeListBuilder.create().texOffs(0, 46).addBox(-4.5F, 0.0F, -2.6F, 9.0F, 20.0F, 5.0F, new CubeDeformation(0.04F)),
+                CubeListBuilder.create().texOffs(64, 16).addBox(-4.5F, 0.0F, -2.6F, 9.0F, 20.0F, 5.0F, new CubeDeformation(0.04F)),
                 PartPose.ZERO);
         body.addOrReplaceChild(
                 "cape",
-                CubeListBuilder.create().texOffs(28, 46).addBox(-5.0F, -0.1F, 2.35F, 10.0F, 20.0F, 1.0F),
+                CubeListBuilder.create().texOffs(64, 48).addBox(-5.0F, -0.1F, 2.35F, 10.0F, 20.0F, 1.0F),
+                PartPose.ZERO);
+        body.addOrReplaceChild(
+                "front_apron",
+                CubeListBuilder.create().texOffs(96, 48).addBox(-2.6F, 5.0F, -3.05F, 5.2F, 16.0F, 1.0F),
                 PartPose.ZERO);
         body.addOrReplaceChild(
                 "right_shoulder",
-                CubeListBuilder.create().texOffs(48, 32).addBox(-8.6F, -1.0F, -3.0F, 5.5F, 3.0F, 5.5F),
+                CubeListBuilder.create().texOffs(96, 16).addBox(-8.6F, -1.0F, -3.0F, 5.5F, 3.0F, 5.5F),
                 PartPose.ZERO);
         body.addOrReplaceChild(
                 "left_shoulder",
-                CubeListBuilder.create().texOffs(48, 41).mirror().addBox(3.1F, -1.0F, -3.0F, 5.5F, 3.0F, 5.5F),
+                CubeListBuilder.create().texOffs(96, 26).mirror().addBox(3.1F, -1.0F, -3.0F, 5.5F, 3.0F, 5.5F),
+                PartPose.ZERO);
+        body.addOrReplaceChild(
+                "right_cape_edge",
+                CubeListBuilder.create().texOffs(112, 48).addBox(-5.45F, 1.0F, 0.6F, 1.0F, 19.0F, 2.8F),
+                PartPose.ZERO);
+        body.addOrReplaceChild(
+                "left_cape_edge",
+                CubeListBuilder.create().texOffs(112, 72).mirror().addBox(4.45F, 1.0F, 0.6F, 1.0F, 19.0F, 2.8F),
                 PartPose.ZERO);
 
-        return LayerDefinition.create(mesh, 64, 64);
+        return LayerDefinition.create(mesh, 128, 128);
     }
 
     @Override
