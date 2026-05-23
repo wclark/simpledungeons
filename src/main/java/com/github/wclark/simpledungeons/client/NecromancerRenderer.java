@@ -16,7 +16,7 @@ public class NecromancerRenderer extends HumanoidMobRenderer<NecromancerEntity, 
     private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(SimpleDungeons.MODID, "textures/entity/necromancer.png");
 
     public NecromancerRenderer(EntityRendererProvider.Context context) {
-        super(context, new NecromancerModel(context.bakeLayer(NecromancerModel.LAYER_LOCATION)), 0.45F);
+        super(context, new NecromancerModel(context.bakeLayer(NecromancerModel.LAYER_LOCATION)), 0.55F);
     }
 
     @Override
@@ -26,6 +26,6 @@ public class NecromancerRenderer extends HumanoidMobRenderer<NecromancerEntity, 
 
     @Override
     protected void scale(NecromancerEntity necromancer, PoseStack poseStack, float partialTick) {
-        poseStack.scale(0.73F, 0.73F, 0.73F);
+        poseStack.scale(0.9F, 0.9F, 0.9F);
     }
 }

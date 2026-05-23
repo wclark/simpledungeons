@@ -13,9 +13,9 @@ public final class ModEntities {
     public static final DeferredHolder<EntityType<?>, EntityType<NecromancerEntity>> NECROMANCER = ENTITY_TYPES.register(
             "necromancer",
             () -> EntityType.Builder.of(NecromancerEntity::new, MobCategory.MONSTER)
-                    .sized(0.6F, 1.8F)
-                    .eyeHeight(1.62F)
-                    .passengerAttachments(1.85F)
+                    .sized(0.6F, 1.95F)
+                    .eyeHeight(1.74F)
+                    .passengerAttachments(2.0125F)
                     .ridingOffset(-0.7F)
                     .clientTrackingRange(8)
                     .build(SimpleDungeons.MODID + ":necromancer"));
