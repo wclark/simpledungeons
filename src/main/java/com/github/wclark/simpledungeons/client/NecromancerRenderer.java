@@ -3,7 +3,6 @@ package com.github.wclark.simpledungeons.client;
 import com.github.wclark.simpledungeons.NecromancerEntity;
 import com.github.wclark.simpledungeons.SimpleDungeons;
 
-import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.HumanoidMobRenderer;
 import net.minecraft.resources.ResourceLocation;
@@ -15,7 +14,7 @@ public class NecromancerRenderer extends HumanoidMobRenderer<NecromancerEntity, 
     private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(SimpleDungeons.MODID, "textures/entity/necromancer.png");
 
     public NecromancerRenderer(EntityRendererProvider.Context context) {
-        super(context, new NecromancerModel(context.bakeLayer(ModelLayers.SKELETON)), 0.5F);
+        super(context, new NecromancerModel(context.bakeLayer(NecromancerModel.LAYER_LOCATION)), 0.5F);
     }
 
     @Override

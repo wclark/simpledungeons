@@ -15,6 +15,11 @@ public final class ClientModEvents {
     }
 
     @SubscribeEvent
+    public static void registerLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
+        event.registerLayerDefinition(NecromancerModel.LAYER_LOCATION, NecromancerModel::createBodyLayer);
+    }
+
+    @SubscribeEvent
     public static void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(ModEntities.NECROMANCER.get(), NecromancerRenderer::new);
         event.registerEntityRenderer(ModEntities.BLUE_ORB.get(), context -> new ThrownItemRenderer<>(context, 1.1F, true));
