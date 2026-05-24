@@ -13,7 +13,7 @@ import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.storage.DimensionDataStorage;
 
 public final class SpawnSkyIslandStructure {
-    private static final int GENERATION_VERSION = 4;
+    private static final int GENERATION_VERSION = 5;
     private static final int SURFACE_Y = 198;
     private static final int RADIUS_X = 86;
     private static final int RADIUS_Z = 64;
@@ -212,8 +212,6 @@ public final class SpawnSkyIslandStructure {
             placeTallWindow(level, center, maxX, z, false, floorY + 4);
         }
 
-        placeFrontDoor(level, center, floorY, maxZ);
-        placeLoadingDoor(level, center, floorY, maxX, 10);
     }
 
     private static void placeFactoryWallBlock(ServerLevel level, BlockPos center, int x, int y, int z) {
@@ -227,38 +225,7 @@ public final class SpawnSkyIslandStructure {
             for (int y = bottomY; y <= bottomY + 5; y++) {
                 int px = wideAlongX ? x + a : x;
                 int pz = wideAlongX ? z : z + a;
-                BlockState pane = y == bottomY + 5 ? Blocks.IRON_BARS.defaultBlockState() : Blocks.LIGHT_BLUE_STAINED_GLASS_PANE.defaultBlockState();
-                level.setBlock(new BlockPos(center.getX() + px, y, center.getZ() + pz), pane, 2);
-            }
-        }
-    }
-
-    private static void placeFrontDoor(ServerLevel level, BlockPos center, int floorY, int z) {
-        for (int x = -4; x <= 4; x++) {
-            for (int y = floorY + 1; y <= floorY + 6; y++) {
-                BlockPos pos = new BlockPos(center.getX() + x, y, center.getZ() + z);
-                if (Math.abs(x) == 4 || y == floorY + 6) {
-                    level.setBlock(pos, Blocks.DEEPSLATE_BRICKS.defaultBlockState(), 2);
-                } else {
-                    level.setBlock(pos, Blocks.AIR.defaultBlockState(), 2);
-                }
-            }
-        }
-
-        for (int x = -6; x <= 6; x++) {
-            level.setBlock(new BlockPos(center.getX() + x, floorY, center.getZ() + z + 1), Blocks.SMOOTH_STONE.defaultBlockState(), 2);
-        }
-    }
-
-    private static void placeLoadingDoor(ServerLevel level, BlockPos center, int floorY, int x, int z) {
-        for (int dz = -4; dz <= 4; dz++) {
-            for (int y = floorY + 1; y <= floorY + 7; y++) {
-                BlockPos pos = new BlockPos(center.getX() + x, y, center.getZ() + z + dz);
-                if (Math.abs(dz) == 4 || y == floorY + 7) {
-                    level.setBlock(pos, Blocks.DEEPSLATE_BRICKS.defaultBlockState(), 2);
-                } else {
-                    level.setBlock(pos, Blocks.IRON_BARS.defaultBlockState(), 2);
-                }
+                level.setBlock(new BlockPos(center.getX() + px, y, center.getZ() + pz), Blocks.LIGHT_BLUE_STAINED_GLASS.defaultBlockState(), 2);
             }
         }
     }
@@ -290,9 +257,9 @@ public final class SpawnSkyIslandStructure {
     }
 
     private static void placeFactoryStacks(ServerLevel level, BlockPos center, int floorY) {
-        placeSmokestack(level, center, -48, -18, floorY + 15, 26);
-        placeSmokestack(level, center, -36, -18, floorY + 15, 30);
-        placeSmokestack(level, center, -24, -18, floorY + 15, 24);
+        placeSmokestack(level, center, -48, -18, floorY + 1, 40);
+        placeSmokestack(level, center, -36, -18, floorY + 1, 44);
+        placeSmokestack(level, center, -24, -18, floorY + 1, 38);
     }
 
     private static void placeSmokestack(ServerLevel level, BlockPos center, int x, int z, int baseY, int height) {
@@ -331,6 +298,12 @@ public final class SpawnSkyIslandStructure {
         for (int z = -18; z <= 18; z += 12) {
             level.setBlock(new BlockPos(center.getX() - 56, floorY + 1, center.getZ() + z), Blocks.LANTERN.defaultBlockState(), 2);
             level.setBlock(new BlockPos(center.getX() + 56, floorY + 1, center.getZ() + z), Blocks.LANTERN.defaultBlockState(), 2);
+        }
+
+        for (int x = -48; x <= 48; x += 12) {
+            for (int z = -18; z <= 18; z += 12) {
+                level.setBlock(new BlockPos(center.getX() + x, floorY + 13, center.getZ() + z), Blocks.SEA_LANTERN.defaultBlockState(), 2);
+            }
         }
     }
 
@@ -375,14 +348,6 @@ public final class SpawnSkyIslandStructure {
             }
         }
 
-        for (int root = 0; root < 4; root++) {
-            int rx = x + (root == 0 ? 1 : root == 1 ? -1 : 0);
-            int rz = z + (root == 2 ? 1 : root == 3 ? -1 : 0);
-            BlockPos rootSurface = surfaceAt(level, center, rx, rz);
-            if (rootSurface != null) {
-                level.setBlock(rootSurface, Blocks.ROOTED_DIRT.defaultBlockState(), 2);
-            }
-        }
     }
 
     private static void placeVegetation(ServerLevel level, BlockPos center, RandomSource random) {
