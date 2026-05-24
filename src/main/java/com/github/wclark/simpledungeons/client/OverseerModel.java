@@ -32,6 +32,8 @@ public class OverseerModel extends EntityModel<OverseerEntity> {
     private static final int GOLD_DARK = 0xFF8E5709;
     private static final int BRONZE = 0xFF74410F;
     private static final int BROWN = 0xFF4D3324;
+    private static final int WHEEL = 0xFF33251D;
+    private static final int WHEEL_SHADOW = 0xFF211913;
     private static final int CYAN = 0xFFC1F3F0;
     private static final int CYAN_SHADOW = 0xFF79D7DA;
     private static final int IRON = 0xFF9A9A95;
@@ -65,13 +67,15 @@ public class OverseerModel extends EntityModel<OverseerEntity> {
     private final ModelPart leftForearm;
     private final ModelPart rightClawBase;
     private final ModelPart leftClawBase;
-    private final ModelPart rightClawA;
-    private final ModelPart rightClawB;
-    private final ModelPart leftClawA;
-    private final ModelPart leftClawB;
+    private final ModelPart rightClawUpper;
+    private final ModelPart rightClawLower;
+    private final ModelPart leftClawUpper;
+    private final ModelPart leftClawLower;
     private final ModelPart waist;
     private final ModelPart hoverPost;
-    private final ModelPart hoverBlock;
+    private final ModelPart wheelCore;
+    private final ModelPart wheelRim;
+    private final ModelPart wheelHub;
     private final ModelPart sideStrutLeft;
     private final ModelPart sideStrutRight;
 
@@ -103,13 +107,15 @@ public class OverseerModel extends EntityModel<OverseerEntity> {
         this.leftForearm = root.getChild("left_forearm");
         this.rightClawBase = root.getChild("right_claw_base");
         this.leftClawBase = root.getChild("left_claw_base");
-        this.rightClawA = root.getChild("right_claw_a");
-        this.rightClawB = root.getChild("right_claw_b");
-        this.leftClawA = root.getChild("left_claw_a");
-        this.leftClawB = root.getChild("left_claw_b");
+        this.rightClawUpper = root.getChild("right_claw_upper");
+        this.rightClawLower = root.getChild("right_claw_lower");
+        this.leftClawUpper = root.getChild("left_claw_upper");
+        this.leftClawLower = root.getChild("left_claw_lower");
         this.waist = root.getChild("waist");
         this.hoverPost = root.getChild("hover_post");
-        this.hoverBlock = root.getChild("hover_block");
+        this.wheelCore = root.getChild("wheel_core");
+        this.wheelRim = root.getChild("wheel_rim");
+        this.wheelHub = root.getChild("wheel_hub");
         this.sideStrutLeft = root.getChild("side_strut_left");
         this.sideStrutRight = root.getChild("side_strut_right");
     }
@@ -181,24 +187,31 @@ public class OverseerModel extends EntityModel<OverseerEntity> {
         root.addOrReplaceChild("left_forearm", CubeListBuilder.create()
                 .texOffs(0, 0).addBox(-0.3F, 7.4F, -2.2F, 4.0F, 5.6F, 4.4F), PartPose.offset(6.1F, 4.0F, 0.0F));
         root.addOrReplaceChild("right_claw_base", CubeListBuilder.create()
-                .texOffs(0, 0).addBox(-3.6F, 12.3F, -1.6F, 3.4F, 2.0F, 3.2F), PartPose.offset(-6.1F, 4.0F, 0.0F));
+                .texOffs(0, 0).addBox(-3.35F, 12.0F, -1.5F, 3.1F, 2.2F, 3.0F), PartPose.offset(-6.1F, 4.0F, 0.0F));
         root.addOrReplaceChild("left_claw_base", CubeListBuilder.create()
-                .texOffs(0, 0).addBox(0.2F, 12.3F, -1.6F, 3.4F, 2.0F, 3.2F), PartPose.offset(6.1F, 4.0F, 0.0F));
-        root.addOrReplaceChild("right_claw_a", CubeListBuilder.create()
-                .texOffs(0, 0).addBox(-5.0F, 13.6F, -1.1F, 2.8F, 1.4F, 1.8F), PartPose.offsetAndRotation(-6.1F, 4.0F, 0.0F, 0.0F, 0.0F, -0.45F));
-        root.addOrReplaceChild("right_claw_b", CubeListBuilder.create()
-                .texOffs(0, 0).addBox(-2.3F, 13.7F, -1.1F, 2.7F, 1.4F, 1.8F), PartPose.offsetAndRotation(-6.1F, 4.0F, 0.0F, 0.0F, 0.0F, 0.45F));
-        root.addOrReplaceChild("left_claw_a", CubeListBuilder.create()
-                .texOffs(0, 0).addBox(2.2F, 13.6F, -1.1F, 2.8F, 1.4F, 1.8F), PartPose.offsetAndRotation(6.1F, 4.0F, 0.0F, 0.0F, 0.0F, 0.45F));
-        root.addOrReplaceChild("left_claw_b", CubeListBuilder.create()
-                .texOffs(0, 0).addBox(-0.4F, 13.7F, -1.1F, 2.7F, 1.4F, 1.8F), PartPose.offsetAndRotation(6.1F, 4.0F, 0.0F, 0.0F, 0.0F, -0.45F));
+                .texOffs(0, 0).addBox(0.25F, 12.0F, -1.5F, 3.1F, 2.2F, 3.0F), PartPose.offset(6.1F, 4.0F, 0.0F));
+        root.addOrReplaceChild("right_claw_upper", CubeListBuilder.create()
+                .texOffs(0, 0).addBox(-4.6F, 12.9F, -1.0F, 3.5F, 1.1F, 1.5F), PartPose.offsetAndRotation(-6.1F, 4.0F, 0.0F, 0.0F, 0.0F, -0.18F));
+        root.addOrReplaceChild("right_claw_lower", CubeListBuilder.create()
+                .texOffs(0, 0).addBox(-4.2F, 14.1F, -1.0F, 3.2F, 1.1F, 1.5F), PartPose.offsetAndRotation(-6.1F, 4.0F, 0.0F, 0.0F, 0.0F, 0.22F));
+        root.addOrReplaceChild("left_claw_upper", CubeListBuilder.create()
+                .texOffs(0, 0).addBox(1.1F, 12.9F, -1.0F, 3.5F, 1.1F, 1.5F), PartPose.offsetAndRotation(6.1F, 4.0F, 0.0F, 0.0F, 0.0F, 0.18F));
+        root.addOrReplaceChild("left_claw_lower", CubeListBuilder.create()
+                .texOffs(0, 0).addBox(1.0F, 14.1F, -1.0F, 3.2F, 1.1F, 1.5F), PartPose.offsetAndRotation(6.1F, 4.0F, 0.0F, 0.0F, 0.0F, -0.22F));
 
         root.addOrReplaceChild("waist", CubeListBuilder.create()
                 .texOffs(0, 0).addBox(-4.4F, 11.2F, -2.8F, 8.8F, 3.0F, 5.6F), PartPose.ZERO);
         root.addOrReplaceChild("hover_post", CubeListBuilder.create()
                 .texOffs(0, 0).addBox(-1.1F, 13.8F, -1.1F, 2.2F, 8.0F, 2.2F), PartPose.ZERO);
-        root.addOrReplaceChild("hover_block", CubeListBuilder.create()
-                .texOffs(0, 0).addBox(-3.2F, 18.4F, -3.2F, 6.4F, 6.0F, 6.4F), PartPose.ZERO);
+        root.addOrReplaceChild("wheel_core", CubeListBuilder.create()
+                .texOffs(0, 0).addBox(-2.1F, 17.2F, -3.2F, 4.2F, 7.0F, 6.4F), PartPose.ZERO);
+        root.addOrReplaceChild("wheel_rim", CubeListBuilder.create()
+                .texOffs(0, 0).addBox(-2.8F, 18.1F, -3.4F, 5.6F, 1.2F, 6.8F)
+                .texOffs(0, 0).addBox(-2.8F, 22.1F, -3.4F, 5.6F, 1.2F, 6.8F)
+                .texOffs(0, 0).addBox(-2.8F, 18.1F, -3.5F, 1.2F, 5.2F, 7.0F)
+                .texOffs(0, 0).addBox(1.6F, 18.1F, -3.5F, 1.2F, 5.2F, 7.0F), PartPose.ZERO);
+        root.addOrReplaceChild("wheel_hub", CubeListBuilder.create()
+                .texOffs(0, 0).addBox(-3.0F, 19.5F, -0.9F, 6.0F, 2.4F, 1.8F), PartPose.ZERO);
         root.addOrReplaceChild("side_strut_left", CubeListBuilder.create()
                 .texOffs(0, 0).addBox(4.4F, 13.0F, -1.0F, 1.4F, 8.8F, 2.0F), PartPose.ZERO);
         root.addOrReplaceChild("side_strut_right", CubeListBuilder.create()
@@ -256,13 +269,15 @@ public class OverseerModel extends EntityModel<OverseerEntity> {
         render(leftForearm, poseStack, buffer, packedLight, packedOverlay, GOLD_DARK);
         render(rightClawBase, poseStack, buffer, packedLight, packedOverlay, GOLD);
         render(leftClawBase, poseStack, buffer, packedLight, packedOverlay, GOLD);
-        render(rightClawA, poseStack, buffer, packedLight, packedOverlay, GOLD_LIGHT);
-        render(rightClawB, poseStack, buffer, packedLight, packedOverlay, GOLD_LIGHT);
-        render(leftClawA, poseStack, buffer, packedLight, packedOverlay, GOLD_LIGHT);
-        render(leftClawB, poseStack, buffer, packedLight, packedOverlay, GOLD_LIGHT);
+        render(rightClawUpper, poseStack, buffer, packedLight, packedOverlay, GOLD_LIGHT);
+        render(rightClawLower, poseStack, buffer, packedLight, packedOverlay, GOLD_DARK);
+        render(leftClawUpper, poseStack, buffer, packedLight, packedOverlay, GOLD_LIGHT);
+        render(leftClawLower, poseStack, buffer, packedLight, packedOverlay, GOLD_DARK);
         render(waist, poseStack, buffer, packedLight, packedOverlay, GOLD_DARK);
         render(hoverPost, poseStack, buffer, packedLight, packedOverlay, IRON_DARK);
-        render(hoverBlock, poseStack, buffer, packedLight, packedOverlay, BROWN);
+        render(wheelCore, poseStack, buffer, packedLight, packedOverlay, WHEEL);
+        render(wheelRim, poseStack, buffer, packedLight, packedOverlay, BROWN);
+        render(wheelHub, poseStack, buffer, packedLight, packedOverlay, WHEEL_SHADOW);
         render(sideStrutLeft, poseStack, buffer, packedLight, packedOverlay, IRON);
         render(sideStrutRight, poseStack, buffer, packedLight, packedOverlay, IRON);
     }

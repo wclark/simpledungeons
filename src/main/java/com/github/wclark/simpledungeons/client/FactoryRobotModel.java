@@ -213,15 +213,15 @@ public class FactoryRobotModel extends EntityModel<FactoryRobotEntity> {
         root.addOrReplaceChild("left_axe_handle", CubeListBuilder.create()
                 .texOffs(0, 0).addBox(-0.45F, -2.0F, -0.45F, 0.9F, 7.6F, 0.9F), PartPose.offsetAndRotation(8.9F, 17.0F, -2.0F, 0.0F, 0.0F, -0.10F));
         root.addOrReplaceChild("right_axe_head", CubeListBuilder.create()
-                .texOffs(0, 0).addBox(-2.7F, -1.7F, -0.8F, 2.8F, 3.8F, 1.6F)
-                .texOffs(0, 0).addBox(-0.1F, -0.8F, -0.8F, 1.7F, 2.0F, 1.6F), PartPose.offsetAndRotation(-9.4F, 16.7F, -2.0F, 0.0F, 0.0F, 0.10F));
+                .texOffs(0, 0).addBox(-2.7F, -1.7F, -0.35F, 2.8F, 3.8F, 0.7F)
+                .texOffs(0, 0).addBox(-0.1F, -0.8F, -0.35F, 1.7F, 2.0F, 0.7F), PartPose.offsetAndRotation(-9.4F, 16.7F, -2.0F, 0.0F, 0.0F, 0.10F));
         root.addOrReplaceChild("left_axe_head", CubeListBuilder.create()
-                .texOffs(0, 0).addBox(-0.1F, -1.7F, -0.8F, 2.8F, 3.8F, 1.6F)
-                .texOffs(0, 0).addBox(-1.6F, -0.8F, -0.8F, 1.7F, 2.0F, 1.6F), PartPose.offsetAndRotation(9.4F, 16.7F, -2.0F, 0.0F, 0.0F, -0.10F));
+                .texOffs(0, 0).addBox(-0.1F, -1.7F, -0.35F, 2.8F, 3.8F, 0.7F)
+                .texOffs(0, 0).addBox(-1.6F, -0.8F, -0.35F, 1.7F, 2.0F, 0.7F), PartPose.offsetAndRotation(9.4F, 16.7F, -2.0F, 0.0F, 0.0F, -0.10F));
         root.addOrReplaceChild("right_axe_edge", CubeListBuilder.create()
-                .texOffs(0, 0).addBox(-3.1F, -0.95F, -0.95F, 0.7F, 2.4F, 1.9F), PartPose.offsetAndRotation(-9.4F, 16.7F, -2.0F, 0.0F, 0.0F, 0.10F));
+                .texOffs(0, 0).addBox(-3.1F, -0.95F, -0.4F, 0.7F, 2.4F, 0.8F), PartPose.offsetAndRotation(-9.4F, 16.7F, -2.0F, 0.0F, 0.0F, 0.10F));
         root.addOrReplaceChild("left_axe_edge", CubeListBuilder.create()
-                .texOffs(0, 0).addBox(2.4F, -0.95F, -0.95F, 0.7F, 2.4F, 1.9F), PartPose.offsetAndRotation(9.4F, 16.7F, -2.0F, 0.0F, 0.0F, -0.10F));
+                .texOffs(0, 0).addBox(2.4F, -0.95F, -0.4F, 0.7F, 2.4F, 0.8F), PartPose.offsetAndRotation(9.4F, 16.7F, -2.0F, 0.0F, 0.0F, -0.10F));
 
         return LayerDefinition.create(mesh, 16, 16);
     }
