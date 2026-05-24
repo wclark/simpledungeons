@@ -13,7 +13,7 @@ import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.storage.DimensionDataStorage;
 
 public final class SpawnSkyIslandStructure {
-    private static final int GENERATION_VERSION = 2;
+    private static final int GENERATION_VERSION = 3;
     private static final int SURFACE_Y = 198;
     private static final int RADIUS_X = 86;
     private static final int RADIUS_Z = 64;
@@ -104,26 +104,22 @@ public final class SpawnSkyIslandStructure {
     }
 
     private static int topY(BlockPos center, double radial, long seed, int x, int z) {
-        if (radial < 0.72D) {
+        if (radial < 0.9D) {
             return center.getY();
         }
 
-        if (radial < 0.9D) {
-            return center.getY() - 1 + noise(seed, x / 8, z / 8, 2);
+        if (radial < 0.97D) {
+            return center.getY() - 1;
         }
 
-        int edgeDrop = 2 + (int) Math.round((radial - 0.9D) * 10.0D);
-        return center.getY() - edgeDrop + noise(seed ^ 0x4b1dL, x / 10, z / 10, 2);
+        int edgeDrop = 2 + (int) Math.round((radial - 0.97D) * 20.0D);
+        return center.getY() - edgeDrop;
     }
 
     private static BlockState topBlock(long seed, int x, int z) {
-        int pick = noise(seed ^ 0x71b5L, x, z, 12);
+        int pick = noise(seed ^ 0x71b5L, x, z, 14);
         if (pick == 0) {
             return Blocks.MOSS_BLOCK.defaultBlockState();
-        }
-
-        if (pick <= 2) {
-            return Blocks.COARSE_DIRT.defaultBlockState();
         }
 
         return Blocks.GRASS_BLOCK.defaultBlockState();
@@ -133,10 +129,6 @@ public final class SpawnSkyIslandStructure {
         int pick = noise(seed ^ 0x9ad31L, x, z, 7);
         if (pick == 0) {
             return Blocks.ROOTED_DIRT.defaultBlockState();
-        }
-
-        if (pick == 1) {
-            return Blocks.COARSE_DIRT.defaultBlockState();
         }
 
         return Blocks.DIRT.defaultBlockState();
@@ -216,7 +208,7 @@ public final class SpawnSkyIslandStructure {
             }
 
             BlockState ground = level.getBlockState(surface);
-            if (!ground.is(Blocks.GRASS_BLOCK) && !ground.is(Blocks.MOSS_BLOCK) && !ground.is(Blocks.COARSE_DIRT)) {
+            if (!ground.is(Blocks.GRASS_BLOCK) && !ground.is(Blocks.MOSS_BLOCK)) {
                 continue;
             }
 
