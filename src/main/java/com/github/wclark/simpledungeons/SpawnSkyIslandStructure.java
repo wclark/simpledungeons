@@ -18,7 +18,7 @@ import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.storage.DimensionDataStorage;
 
 public final class SpawnSkyIslandStructure {
-    private static final int GENERATION_VERSION = 6;
+    private static final int GENERATION_VERSION = 7;
     private static final int SURFACE_Y = 198;
     private static final int RADIUS_X = 86;
     private static final int RADIUS_Z = 64;
@@ -353,15 +353,7 @@ public final class SpawnSkyIslandStructure {
             }
         }
 
-        for (int x = -50; x <= 50; x += 10) {
-            level.setBlock(new BlockPos(center.getX() + x, floorY + 9, center.getZ() + 25), litCopperBulb(), 2);
-            level.setBlock(new BlockPos(center.getX() + x, floorY + 9, center.getZ() - 25), litCopperBulb(), 2);
-        }
-
-        for (int z = -18; z <= 18; z += 9) {
-            level.setBlock(new BlockPos(center.getX() - 57, floorY + 9, center.getZ() + z), litCopperBulb(), 2);
-            level.setBlock(new BlockPos(center.getX() + 57, floorY + 9, center.getZ() + z), litCopperBulb(), 2);
-        }
+        placeFloorLightGrid(level, center, floorY);
     }
 
     private static boolean isInsideSmokestackFootprint(int x, int z) {
@@ -378,6 +370,18 @@ public final class SpawnSkyIslandStructure {
         level.setBlock(new BlockPos(center.getX() + x, bulbY + 2, center.getZ() + z), Blocks.CHAIN.defaultBlockState(), 2);
         level.setBlock(new BlockPos(center.getX() + x, bulbY + 1, center.getZ() + z), Blocks.CHAIN.defaultBlockState(), 2);
         level.setBlock(new BlockPos(center.getX() + x, bulbY, center.getZ() + z), litCopperBulb(), 2);
+    }
+
+    private static void placeFloorLightGrid(ServerLevel level, BlockPos center, int floorY) {
+        for (int x = -50; x <= 50; x += 10) {
+            for (int z = -20; z <= 20; z += 10) {
+                if (isInsideSmokestackFootprint(x, z)) {
+                    continue;
+                }
+
+                level.setBlock(new BlockPos(center.getX() + x, floorY, center.getZ() + z), litCopperBulb(), 2);
+            }
+        }
     }
 
     private static BlockState litCopperBulb() {
