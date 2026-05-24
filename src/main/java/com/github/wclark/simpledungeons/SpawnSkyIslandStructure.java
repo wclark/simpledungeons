@@ -1,19 +1,24 @@
 package com.github.wclark.simpledungeons;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.CopperBulbBlock;
+import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.DoorHingeSide;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.storage.DimensionDataStorage;
 
 public final class SpawnSkyIslandStructure {
-    private static final int GENERATION_VERSION = 5;
+    private static final int GENERATION_VERSION = 6;
     private static final int SURFACE_Y = 198;
     private static final int RADIUS_X = 86;
     private static final int RADIUS_Z = 64;
@@ -212,6 +217,41 @@ public final class SpawnSkyIslandStructure {
             placeTallWindow(level, center, maxX, z, false, floorY + 4);
         }
 
+        placeFactoryEntrance(level, center, floorY, maxZ);
+    }
+
+    private static void placeFactoryEntrance(ServerLevel level, BlockPos center, int floorY, int z) {
+        int bottomY = floorY + 1;
+        for (int x = -3; x <= 3; x++) {
+            for (int y = bottomY; y <= bottomY + 4; y++) {
+                boolean frame = Math.abs(x) == 3 || y == bottomY + 4;
+                BlockState state = frame ? Blocks.DEEPSLATE_BRICKS.defaultBlockState() : Blocks.AIR.defaultBlockState();
+                level.setBlock(new BlockPos(center.getX() + x, y, center.getZ() + z), state, 2);
+            }
+        }
+
+        for (int x = -1; x <= 1; x++) {
+            level.setBlock(new BlockPos(center.getX() + x, bottomY + 3, center.getZ() + z), Blocks.LIGHT_BLUE_STAINED_GLASS.defaultBlockState(), 2);
+        }
+
+        placeDoorHalf(level, center, -1, z, bottomY, Direction.SOUTH, DoorHingeSide.LEFT, DoubleBlockHalf.LOWER);
+        placeDoorHalf(level, center, -1, z, bottomY + 1, Direction.SOUTH, DoorHingeSide.LEFT, DoubleBlockHalf.UPPER);
+        placeDoorHalf(level, center, 0, z, bottomY, Direction.SOUTH, DoorHingeSide.RIGHT, DoubleBlockHalf.LOWER);
+        placeDoorHalf(level, center, 0, z, bottomY + 1, Direction.SOUTH, DoorHingeSide.RIGHT, DoubleBlockHalf.UPPER);
+
+        for (int x = -2; x <= 2; x++) {
+            level.setBlock(new BlockPos(center.getX() + x, floorY, center.getZ() + z + 1), Blocks.POLISHED_ANDESITE.defaultBlockState(), 2);
+        }
+    }
+
+    private static void placeDoorHalf(ServerLevel level, BlockPos center, int x, int z, int y, Direction facing, DoorHingeSide hinge, DoubleBlockHalf half) {
+        BlockState door = Blocks.WAXED_COPPER_DOOR.defaultBlockState()
+                .setValue(DoorBlock.FACING, facing)
+                .setValue(DoorBlock.HINGE, hinge)
+                .setValue(DoorBlock.HALF, half)
+                .setValue(DoorBlock.OPEN, Boolean.FALSE)
+                .setValue(DoorBlock.POWERED, Boolean.FALSE);
+        level.setBlock(new BlockPos(center.getX() + x, y, center.getZ() + z), door, 2);
     }
 
     private static void placeFactoryWallBlock(ServerLevel level, BlockPos center, int x, int y, int z) {
@@ -300,11 +340,50 @@ public final class SpawnSkyIslandStructure {
             level.setBlock(new BlockPos(center.getX() + 56, floorY + 1, center.getZ() + z), Blocks.LANTERN.defaultBlockState(), 2);
         }
 
-        for (int x = -48; x <= 48; x += 12) {
-            for (int z = -18; z <= 18; z += 12) {
-                level.setBlock(new BlockPos(center.getX() + x, floorY + 13, center.getZ() + z), Blocks.SEA_LANTERN.defaultBlockState(), 2);
+        int beamY = floorY + 14;
+        for (int z : new int[]{-14, -2, 10, 22}) {
+            for (int x = -56; x <= 56; x++) {
+                level.setBlock(new BlockPos(center.getX() + x, beamY, center.getZ() + z), Blocks.OXIDIZED_CUT_COPPER.defaultBlockState(), 2);
+            }
+
+            for (int x = -50; x <= 50; x += 10) {
+                if (!isInsideSmokestackFootprint(x, z)) {
+                    placeCopperBulbFixture(level, center, x, z, floorY + 11);
+                }
             }
         }
+
+        for (int x = -50; x <= 50; x += 10) {
+            level.setBlock(new BlockPos(center.getX() + x, floorY + 9, center.getZ() + 25), litCopperBulb(), 2);
+            level.setBlock(new BlockPos(center.getX() + x, floorY + 9, center.getZ() - 25), litCopperBulb(), 2);
+        }
+
+        for (int z = -18; z <= 18; z += 9) {
+            level.setBlock(new BlockPos(center.getX() - 57, floorY + 9, center.getZ() + z), litCopperBulb(), 2);
+            level.setBlock(new BlockPos(center.getX() + 57, floorY + 9, center.getZ() + z), litCopperBulb(), 2);
+        }
+    }
+
+    private static boolean isInsideSmokestackFootprint(int x, int z) {
+        for (int stackX : new int[]{-48, -36, -24}) {
+            if (Math.abs(x - stackX) <= 4 && Math.abs(z + 18) <= 4) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static void placeCopperBulbFixture(ServerLevel level, BlockPos center, int x, int z, int bulbY) {
+        level.setBlock(new BlockPos(center.getX() + x, bulbY + 2, center.getZ() + z), Blocks.CHAIN.defaultBlockState(), 2);
+        level.setBlock(new BlockPos(center.getX() + x, bulbY + 1, center.getZ() + z), Blocks.CHAIN.defaultBlockState(), 2);
+        level.setBlock(new BlockPos(center.getX() + x, bulbY, center.getZ() + z), litCopperBulb(), 2);
+    }
+
+    private static BlockState litCopperBulb() {
+        return Blocks.WAXED_COPPER_BULB.defaultBlockState()
+                .setValue(CopperBulbBlock.LIT, Boolean.TRUE)
+                .setValue(CopperBulbBlock.POWERED, Boolean.FALSE);
     }
 
     private static void placeTrees(ServerLevel level, BlockPos center, RandomSource random) {
