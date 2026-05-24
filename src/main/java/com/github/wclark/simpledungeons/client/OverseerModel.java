@@ -204,14 +204,14 @@ public class OverseerModel extends EntityModel<OverseerEntity> {
         root.addOrReplaceChild("hover_post", CubeListBuilder.create()
                 .texOffs(0, 0).addBox(-1.1F, 13.8F, -1.1F, 2.2F, 8.0F, 2.2F), PartPose.ZERO);
         root.addOrReplaceChild("wheel_core", CubeListBuilder.create()
-                .texOffs(0, 0).addBox(-2.1F, 17.2F, -3.2F, 4.2F, 7.0F, 6.4F), PartPose.ZERO);
+                .texOffs(0, 0).addBox(-1.2F, 17.2F, -3.2F, 2.4F, 7.0F, 6.4F), PartPose.ZERO);
         root.addOrReplaceChild("wheel_rim", CubeListBuilder.create()
-                .texOffs(0, 0).addBox(-2.8F, 18.1F, -3.4F, 5.6F, 1.2F, 6.8F)
-                .texOffs(0, 0).addBox(-2.8F, 22.1F, -3.4F, 5.6F, 1.2F, 6.8F)
-                .texOffs(0, 0).addBox(-2.8F, 18.1F, -3.5F, 1.2F, 5.2F, 7.0F)
-                .texOffs(0, 0).addBox(1.6F, 18.1F, -3.5F, 1.2F, 5.2F, 7.0F), PartPose.ZERO);
+                .texOffs(0, 0).addBox(-1.6F, 18.1F, -3.4F, 3.2F, 1.2F, 6.8F)
+                .texOffs(0, 0).addBox(-1.6F, 22.1F, -3.4F, 3.2F, 1.2F, 6.8F)
+                .texOffs(0, 0).addBox(-1.7F, 18.1F, -3.5F, 3.4F, 5.2F, 1.2F)
+                .texOffs(0, 0).addBox(-1.7F, 18.1F, 2.3F, 3.4F, 5.2F, 1.2F), PartPose.ZERO);
         root.addOrReplaceChild("wheel_hub", CubeListBuilder.create()
-                .texOffs(0, 0).addBox(-3.0F, 19.5F, -0.9F, 6.0F, 2.4F, 1.8F), PartPose.ZERO);
+                .texOffs(0, 0).addBox(-2.3F, 19.5F, -0.9F, 4.6F, 2.4F, 1.8F), PartPose.ZERO);
         root.addOrReplaceChild("side_strut_left", CubeListBuilder.create()
                 .texOffs(0, 0).addBox(4.4F, 13.0F, -1.0F, 1.4F, 8.8F, 2.0F), PartPose.ZERO);
         root.addOrReplaceChild("side_strut_right", CubeListBuilder.create()

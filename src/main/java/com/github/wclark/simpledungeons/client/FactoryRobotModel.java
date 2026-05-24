@@ -209,9 +209,9 @@ public class FactoryRobotModel extends EntityModel<FactoryRobotEntity> {
                 .texOffs(0, 0).addBox(-2.3F, 9.0F, -3.0F, 4.6F, 2.6F, 5.0F), PartPose.offset(2.4F, 12.4F, 0.0F));
 
         root.addOrReplaceChild("right_axe_handle", CubeListBuilder.create()
-                .texOffs(0, 0).addBox(-0.45F, -2.0F, -0.45F, 0.9F, 7.6F, 0.9F), PartPose.offsetAndRotation(-8.9F, 17.0F, -2.0F, 0.0F, 0.0F, 0.10F));
+                .texOffs(0, 0).addBox(-0.35F, -1.55F, -0.35F, 0.7F, 3.65F, 0.7F), PartPose.offsetAndRotation(-8.9F, 17.0F, -2.0F, 0.0F, 0.0F, 0.10F));
         root.addOrReplaceChild("left_axe_handle", CubeListBuilder.create()
-                .texOffs(0, 0).addBox(-0.45F, -2.0F, -0.45F, 0.9F, 7.6F, 0.9F), PartPose.offsetAndRotation(8.9F, 17.0F, -2.0F, 0.0F, 0.0F, -0.10F));
+                .texOffs(0, 0).addBox(-0.35F, -1.55F, -0.35F, 0.7F, 3.65F, 0.7F), PartPose.offsetAndRotation(8.9F, 17.0F, -2.0F, 0.0F, 0.0F, -0.10F));
         root.addOrReplaceChild("right_axe_head", CubeListBuilder.create()
                 .texOffs(0, 0).addBox(-2.7F, -1.7F, -0.35F, 2.8F, 3.8F, 0.7F)
                 .texOffs(0, 0).addBox(-0.1F, -0.8F, -0.35F, 1.7F, 2.0F, 0.7F), PartPose.offsetAndRotation(-9.4F, 16.7F, -2.0F, 0.0F, 0.0F, 0.10F));
