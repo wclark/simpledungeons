@@ -13,10 +13,11 @@ import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.storage.DimensionDataStorage;
 
 public final class SpawnSkyIslandStructure {
+    private static final int GENERATION_VERSION = 2;
     private static final int SURFACE_Y = 198;
     private static final int RADIUS_X = 86;
     private static final int RADIUS_Z = 64;
-    private static final int MAX_TOP_VARIATION = 7;
+    private static final int MAX_TOP_VARIATION = 3;
     private static final int MAX_THICKNESS = 36;
 
     private SpawnSkyIslandStructure() {
@@ -28,7 +29,7 @@ public final class SpawnSkyIslandStructure {
         }
 
         SkyIslandData data = SkyIslandData.get(level);
-        if (data.isPlaced()) {
+        if (data.isCurrent()) {
             return false;
         }
 
@@ -36,6 +37,9 @@ public final class SpawnSkyIslandStructure {
         int islandY = Math.min(level.getMaxBuildHeight() - 84, Math.max(150, SURFACE_Y));
         BlockPos center = new BlockPos(spawn.getX(), islandY, spawn.getZ());
         RandomSource random = RandomSource.create(level.getSeed() ^ 0x51a7d15L);
+        if (data.hasPlacedIsland()) {
+            clearIslandVolume(level, center);
+        }
         build(level, center, random);
         data.markPlaced(center);
         return true;
@@ -43,13 +47,29 @@ public final class SpawnSkyIslandStructure {
 
     private static void build(ServerLevel level, BlockPos center, RandomSource random) {
         buildIslandTerrain(level, center, level.getSeed());
-        placePathNetwork(level, center, random);
-        placePond(level, center, -24, 12, random);
-        placeFoundations(level, center, random);
         placeTrees(level, center, random);
-        placeLampPosts(level, center);
         placeVegetation(level, center, random);
-        placeDanglingRoots(level, center, random);
+    }
+
+    private static void clearIslandVolume(ServerLevel level, BlockPos center) {
+        int minY = center.getY() - MAX_THICKNESS - 24;
+        int maxY = center.getY() + MAX_TOP_VARIATION + 22;
+        for (int x = -RADIUS_X - 8; x <= RADIUS_X + 8; x++) {
+            for (int z = -RADIUS_Z - 8; z <= RADIUS_Z + 8; z++) {
+                double nx = x / (double) (RADIUS_X + 8);
+                double nz = z / (double) (RADIUS_Z + 8);
+                if (nx * nx + nz * nz > 1.18D) {
+                    continue;
+                }
+
+                for (int y = minY; y <= maxY; y++) {
+                    BlockPos pos = new BlockPos(center.getX() + x, y, center.getZ() + z);
+                    if (!level.getBlockState(pos).isAir()) {
+                        level.setBlock(pos, Blocks.AIR.defaultBlockState(), 2);
+                    }
+                }
+            }
+        }
     }
 
     private static void buildIslandTerrain(ServerLevel level, BlockPos center, long seed) {
@@ -63,9 +83,10 @@ public final class SpawnSkyIslandStructure {
                     continue;
                 }
 
-                double centerWeight = Math.max(0.0D, 1.0D - distance);
-                int topY = center.getY() + (int) Math.round(centerWeight * MAX_TOP_VARIATION) + noise(seed, x, z, 5) - 2;
-                int thickness = 4 + (int) Math.round(centerWeight * MAX_THICKNESS) + noise(seed, x * 3, z * 3, 5);
+                double radial = Math.sqrt(distance);
+                double centerWeight = Math.max(0.0D, 1.0D - radial);
+                int topY = topY(center, radial, seed, x, z);
+                int thickness = 10 + (int) Math.round(centerWeight * MAX_THICKNESS) + noise(seed, x * 3, z * 3, 4);
                 for (int y = topY - thickness; y <= topY; y++) {
                     BlockState state;
                     if (y == topY) {
@@ -80,6 +101,19 @@ public final class SpawnSkyIslandStructure {
                 }
             }
         }
+    }
+
+    private static int topY(BlockPos center, double radial, long seed, int x, int z) {
+        if (radial < 0.72D) {
+            return center.getY();
+        }
+
+        if (radial < 0.9D) {
+            return center.getY() - 1 + noise(seed, x / 8, z / 8, 2);
+        }
+
+        int edgeDrop = 2 + (int) Math.round((radial - 0.9D) * 10.0D);
+        return center.getY() - edgeDrop + noise(seed ^ 0x4b1dL, x / 10, z / 10, 2);
     }
 
     private static BlockState topBlock(long seed, int x, int z) {
@@ -119,121 +153,6 @@ public final class SpawnSkyIslandStructure {
         }
 
         return Blocks.STONE.defaultBlockState();
-    }
-
-    private static void placePathNetwork(ServerLevel level, BlockPos center, RandomSource random) {
-        for (int x = -64; x <= 64; x++) {
-            for (int z = -3; z <= 3; z++) {
-                setSurfaceBlock(level, center, x, z, pathBlock(random));
-            }
-        }
-
-        for (int z = -46; z <= 46; z++) {
-            for (int x = -3; x <= 3; x++) {
-                setSurfaceBlock(level, center, x, z, pathBlock(random));
-            }
-        }
-
-        for (int x = -52; x <= 52; x++) {
-            setSurfaceBlock(level, center, x, 28, pathBlock(random));
-        }
-
-        for (int x = -52; x <= 52; x++) {
-            setSurfaceBlock(level, center, x, -30, pathBlock(random));
-        }
-    }
-
-    private static BlockState pathBlock(RandomSource random) {
-        int pick = random.nextInt(5);
-        if (pick == 0) {
-            return Blocks.GRAVEL.defaultBlockState();
-        }
-
-        if (pick == 1) {
-            return Blocks.COARSE_DIRT.defaultBlockState();
-        }
-
-        return Blocks.DIRT_PATH.defaultBlockState();
-    }
-
-    private static void placePond(ServerLevel level, BlockPos center, int cx, int cz, RandomSource random) {
-        for (int x = -9; x <= 9; x++) {
-            for (int z = -6; z <= 6; z++) {
-                double shape = (x * x) / 81.0D + (z * z) / 36.0D;
-                if (shape > 1.0D) {
-                    continue;
-                }
-
-                BlockPos surface = surfaceAt(level, center, cx + x, cz + z);
-                if (surface == null) {
-                    continue;
-                }
-
-                level.setBlock(surface, Blocks.WATER.defaultBlockState(), 2);
-                level.setBlock(surface.below(), random.nextBoolean() ? Blocks.CLAY.defaultBlockState() : Blocks.STONE.defaultBlockState(), 2);
-                level.setBlock(surface.above(), Blocks.AIR.defaultBlockState(), 2);
-            }
-        }
-
-        for (int x = -11; x <= 11; x++) {
-            for (int z = -8; z <= 8; z++) {
-                double shape = (x * x) / 121.0D + (z * z) / 64.0D;
-                if (shape < 0.9D || shape > 1.18D) {
-                    continue;
-                }
-
-                setSurfaceBlock(level, center, cx + x, cz + z, random.nextBoolean() ? Blocks.MOSSY_COBBLESTONE.defaultBlockState() : Blocks.COBBLESTONE.defaultBlockState());
-            }
-        }
-    }
-
-    private static void placeFoundations(ServerLevel level, BlockPos center, RandomSource random) {
-        placeFoundation(level, center, -46, -22, 18, 12, random);
-        placeFoundation(level, center, 42, -26, 20, 14, random);
-        placeFoundation(level, center, -48, 28, 16, 14, random);
-        placeFoundation(level, center, 38, 30, 18, 12, random);
-        placeFoundation(level, center, 10, -42, 24, 10, random);
-        placeFoundation(level, center, -2, 42, 22, 12, random);
-    }
-
-    private static void placeFoundation(ServerLevel level, BlockPos center, int cx, int cz, int width, int depth, RandomSource random) {
-        int halfWidth = width / 2;
-        int halfDepth = depth / 2;
-        for (int x = -halfWidth; x <= halfWidth; x++) {
-            for (int z = -halfDepth; z <= halfDepth; z++) {
-                BlockState floor = random.nextInt(5) == 0 ? Blocks.MOSSY_STONE_BRICKS.defaultBlockState() : Blocks.STONE_BRICKS.defaultBlockState();
-                setSurfaceBlock(level, center, cx + x, cz + z, floor);
-            }
-        }
-
-        for (int x = -halfWidth; x <= halfWidth; x += halfWidth * 2) {
-            for (int z = -halfDepth; z <= halfDepth; z++) {
-                placeLowWall(level, center, cx + x, cz + z, random);
-            }
-        }
-
-        for (int z = -halfDepth; z <= halfDepth; z += halfDepth * 2) {
-            for (int x = -halfWidth; x <= halfWidth; x++) {
-                placeLowWall(level, center, cx + x, cz + z, random);
-            }
-        }
-    }
-
-    private static void placeLowWall(ServerLevel level, BlockPos center, int x, int z, RandomSource random) {
-        if (random.nextInt(4) == 0) {
-            return;
-        }
-
-        BlockPos surface = surfaceAt(level, center, x, z);
-        if (surface == null) {
-            return;
-        }
-
-        BlockState wall = random.nextBoolean() ? Blocks.COBBLESTONE_WALL.defaultBlockState() : Blocks.MOSSY_COBBLESTONE_WALL.defaultBlockState();
-        level.setBlock(surface.above(), wall, 2);
-        if (random.nextInt(5) == 0) {
-            level.setBlock(surface.above(2), wall, 2);
-        }
     }
 
     private static void placeTrees(ServerLevel level, BlockPos center, RandomSource random) {
@@ -287,33 +206,8 @@ public final class SpawnSkyIslandStructure {
         }
     }
 
-    private static void placeLampPosts(ServerLevel level, BlockPos center) {
-        int[][] posts = {
-                {-26, 0},
-                {26, 0},
-                {0, -26},
-                {0, 26},
-                {-48, -2},
-                {48, -2},
-                {-4, 44},
-                {4, -44}
-        };
-
-        for (int[] post : posts) {
-            BlockPos surface = surfaceAt(level, center, post[0], post[1]);
-            if (surface == null) {
-                continue;
-            }
-
-            for (int y = 1; y <= 4; y++) {
-                level.setBlock(surface.above(y), Blocks.OAK_FENCE.defaultBlockState(), 2);
-            }
-            level.setBlock(surface.above(5), Blocks.LANTERN.defaultBlockState(), 2);
-        }
-    }
-
     private static void placeVegetation(ServerLevel level, BlockPos center, RandomSource random) {
-        for (int i = 0; i < 520; i++) {
+        for (int i = 0; i < 180; i++) {
             int x = random.nextInt(RADIUS_X * 2 + 1) - RADIUS_X;
             int z = random.nextInt(RADIUS_Z * 2 + 1) - RADIUS_Z;
             BlockPos surface = surfaceAt(level, center, x, z);
@@ -326,49 +220,15 @@ public final class SpawnSkyIslandStructure {
                 continue;
             }
 
-            BlockState plant = switch (random.nextInt(8)) {
+            BlockState plant = switch (random.nextInt(6)) {
                 case 0 -> Blocks.DANDELION.defaultBlockState();
                 case 1 -> Blocks.POPPY.defaultBlockState();
-                case 2 -> Blocks.FERN.defaultBlockState();
-                case 3 -> Blocks.MOSS_CARPET.defaultBlockState();
-                default -> Blocks.SHORT_GRASS.defaultBlockState();
+                case 2 -> Blocks.BLUE_ORCHID.defaultBlockState();
+                case 3 -> Blocks.AZURE_BLUET.defaultBlockState();
+                case 4 -> Blocks.OXEYE_DAISY.defaultBlockState();
+                default -> Blocks.CORNFLOWER.defaultBlockState();
             };
             level.setBlock(surface.above(), plant, 2);
-        }
-    }
-
-    private static void placeDanglingRoots(ServerLevel level, BlockPos center, RandomSource random) {
-        for (int i = 0; i < 180; i++) {
-            int x = random.nextInt(RADIUS_X * 2 + 1) - RADIUS_X;
-            int z = random.nextInt(RADIUS_Z * 2 + 1) - RADIUS_Z;
-            double nx = x / (double) RADIUS_X;
-            double nz = z / (double) RADIUS_Z;
-            double distance = nx * nx + nz * nz;
-            if (distance < 0.45D || distance > 1.08D) {
-                continue;
-            }
-
-            BlockPos underside = undersideAt(level, center, x, z);
-            if (underside == null) {
-                continue;
-            }
-
-            int length = 3 + random.nextInt(8);
-            for (int y = 1; y <= length; y++) {
-                BlockPos pos = underside.below(y);
-                if (!level.getBlockState(pos).isAir()) {
-                    break;
-                }
-                level.setBlock(pos, random.nextInt(4) == 0 ? Blocks.MANGROVE_ROOTS.defaultBlockState() : Blocks.OAK_FENCE.defaultBlockState(), 2);
-            }
-        }
-    }
-
-    private static void setSurfaceBlock(ServerLevel level, BlockPos center, int x, int z, BlockState state) {
-        BlockPos surface = surfaceAt(level, center, x, z);
-        if (surface != null) {
-            level.setBlock(surface, state, 2);
-            level.setBlock(surface.above(), Blocks.AIR.defaultBlockState(), 2);
         }
     }
 
@@ -376,20 +236,6 @@ public final class SpawnSkyIslandStructure {
         int worldX = center.getX() + x;
         int worldZ = center.getZ() + z;
         for (int y = center.getY() + MAX_TOP_VARIATION + 4; y >= center.getY() - 8; y--) {
-            BlockPos pos = new BlockPos(worldX, y, worldZ);
-            BlockState state = level.getBlockState(pos);
-            if (!state.isAir() && state.getFluidState().isEmpty()) {
-                return pos;
-            }
-        }
-
-        return null;
-    }
-
-    private static BlockPos undersideAt(ServerLevel level, BlockPos center, int x, int z) {
-        int worldX = center.getX() + x;
-        int worldZ = center.getZ() + z;
-        for (int y = center.getY() - MAX_THICKNESS - 8; y <= center.getY() + MAX_TOP_VARIATION + 4; y++) {
             BlockPos pos = new BlockPos(worldX, y, worldZ);
             BlockState state = level.getBlockState(pos);
             if (!state.isAir() && state.getFluidState().isEmpty()) {
@@ -414,6 +260,7 @@ public final class SpawnSkyIslandStructure {
     private static final class SkyIslandData extends SavedData {
         private static final String NAME = SimpleDungeons.MODID + "_spawn_sky_island";
         private boolean placed;
+        private int version;
         private BlockPos center;
 
         private SkyIslandData() {
@@ -421,6 +268,7 @@ public final class SpawnSkyIslandStructure {
 
         private SkyIslandData(CompoundTag tag) {
             placed = tag.getBoolean("placed");
+            version = tag.getInt("version");
             if (tag.contains("center")) {
                 center = BlockPos.of(tag.getLong("center"));
             }
@@ -435,12 +283,17 @@ public final class SpawnSkyIslandStructure {
             return storage.computeIfAbsent(factory(), NAME);
         }
 
-        private boolean isPlaced() {
+        private boolean isCurrent() {
+            return placed && version >= GENERATION_VERSION;
+        }
+
+        private boolean hasPlacedIsland() {
             return placed;
         }
 
         private void markPlaced(BlockPos center) {
             this.placed = true;
+            this.version = GENERATION_VERSION;
             this.center = center.immutable();
             setDirty();
         }
@@ -448,6 +301,7 @@ public final class SpawnSkyIslandStructure {
         @Override
         public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
             tag.putBoolean("placed", placed);
+            tag.putInt("version", version);
             if (center != null) {
                 tag.putLong("center", center.asLong());
             }
