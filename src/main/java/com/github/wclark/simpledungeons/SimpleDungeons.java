@@ -30,6 +30,7 @@ public class SimpleDungeons {
         modEventBus.addListener(this::registerEntityAttributes);
         NeoForge.EVENT_BUS.register(this);
         NeoForge.EVENT_BUS.register(new GraveyardUndeadSpawner());
+        NeoForge.EVENT_BUS.register(new SurfaceCryptPlacementManager());
         NeoForge.EVENT_BUS.register(new UndeadSummons());
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }
@@ -58,7 +59,7 @@ public class SimpleDungeons {
 
     @SubscribeEvent
     public void onServerStarted(ServerStartedEvent event) {
-        boolean placed = SpawnGraveyardStructure.ensureAtSpawn(event.getServer().overworld());
-        LOGGER.info("Simple Dungeons reference graveyard {}.", placed ? "was rebuilt at spawn" : "is disabled");
+        boolean placed = SpawnSkyIslandStructure.ensureAtSpawn(event.getServer().overworld());
+        LOGGER.info("Simple Dungeons spawn sky island {}.", placed ? "was placed above spawn" : "is already present or disabled");
     }
 }

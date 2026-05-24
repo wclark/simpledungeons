@@ -4,6 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.BiomeTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.EntityType;
@@ -40,19 +41,57 @@ public final class SpawnGraveyardStructure {
     private static final int BOSS_ROOM_MAX_X = 14;
     private static final int BOSS_ROOM_MIN_Z = -69;
     private static final int BOSS_ROOM_MAX_Z = -52;
+    private static final int SURFACE_MIN_Z = -HALF_DEPTH;
+    private static final int SURFACE_MAX_Z = HALF_DEPTH + 8;
+    private static final int MAX_TERRAIN_VARIATION = 2;
+    private static final int REQUIRED_SOLID_DEPTH = 5;
 
     private SpawnGraveyardStructure() {
     }
 
-    public static boolean ensureAtSpawn(ServerLevel level) {
+    public static boolean placeAt(ServerLevel level, BlockPos centerGround, RandomSource random) {
         if (!Config.ENABLE_SURFACE_CRYPT.getAsBoolean() || level.dimension() != Level.OVERWORLD) {
             return false;
         }
 
-        BlockPos spawn = level.getSharedSpawnPos();
-        BlockPos centerGround = groundAt(level, spawn.getX(), spawn.getZ());
-        build(level, centerGround, level.random);
+        build(level, centerGround, random);
         return true;
+    }
+
+    public static boolean canPlaceAt(ServerLevel level, BlockPos centerGround) {
+        if (!Config.ENABLE_SURFACE_CRYPT.getAsBoolean() || level.dimension() != Level.OVERWORLD) {
+            return false;
+        }
+
+        if (centerGround.getY() + LOWER_CRYPT_FLOOR_Y <= level.getMinBuildHeight() + 4) {
+            return false;
+        }
+
+        if (!isOpenSurfaceBiome(level, centerGround)) {
+            return false;
+        }
+
+        int minY = centerGround.getY();
+        int maxY = centerGround.getY();
+        for (int x = -HALF_WIDTH; x <= HALF_WIDTH; x += 4) {
+            for (int z = SURFACE_MIN_Z; z <= SURFACE_MAX_Z; z += 4) {
+                BlockPos sampleGround = groundAt(level, centerGround.getX() + x, centerGround.getZ() + z);
+                minY = Math.min(minY, sampleGround.getY());
+                maxY = Math.max(maxY, sampleGround.getY());
+
+                if (maxY - minY > MAX_TERRAIN_VARIATION
+                        || !hasSolidGroundDepth(level, sampleGround)
+                        || !hasClearBuildSpace(level, sampleGround)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    public static BlockPos groundAt(ServerLevel level, int x, int z) {
+        return level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, new BlockPos(x, 0, z)).below();
     }
 
     private static void build(ServerLevel level, BlockPos centerGround, RandomSource random) {
@@ -1107,15 +1146,50 @@ public final class SpawnGraveyardStructure {
         }
     }
 
+    private static boolean isOpenSurfaceBiome(ServerLevel level, BlockPos centerGround) {
+        var biome = level.getBiome(centerGround);
+        return !biome.is(BiomeTags.IS_FOREST)
+                && !biome.is(BiomeTags.IS_JUNGLE)
+                && !biome.is(BiomeTags.IS_TAIGA)
+                && !biome.is(BiomeTags.IS_MOUNTAIN)
+                && !biome.is(BiomeTags.IS_HILL)
+                && !biome.is(BiomeTags.IS_OCEAN)
+                && !biome.is(BiomeTags.IS_RIVER)
+                && !biome.is(BiomeTags.IS_BEACH);
+    }
+
+    private static boolean hasSolidGroundDepth(ServerLevel level, BlockPos ground) {
+        for (int y = 0; y < REQUIRED_SOLID_DEPTH; y++) {
+            BlockPos pos = ground.below(y);
+            BlockState state = level.getBlockState(pos);
+            if (state.isAir()
+                    || !state.getFluidState().isEmpty()
+                    || state.getCollisionShape(level, pos).isEmpty()
+                    || !state.isFaceSturdy(level, pos, Direction.UP)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static boolean hasClearBuildSpace(ServerLevel level, BlockPos ground) {
+        for (int y = 1; y <= CLEAR_HEIGHT; y++) {
+            BlockPos pos = ground.above(y);
+            BlockState state = level.getBlockState(pos);
+            if (!state.getFluidState().isEmpty() || !state.getCollisionShape(level, pos).isEmpty()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private static BlockPos at(BlockPos centerGround, int x, int z) {
         return new BlockPos(centerGround.getX() + x, centerGround.getY(), centerGround.getZ() + z);
     }
 
     private static BlockPos at(BlockPos centerGround, int x, int y, int z) {
         return new BlockPos(centerGround.getX() + x, centerGround.getY() + y, centerGround.getZ() + z);
-    }
-
-    private static BlockPos groundAt(ServerLevel level, int x, int z) {
-        return level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, new BlockPos(x, 0, z)).below();
     }
 }

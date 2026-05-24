@@ -30,7 +30,6 @@ import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.storage.DimensionDataStorage;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -61,9 +60,12 @@ public class GraveyardUndeadSpawner {
             return;
         }
 
-        BlockPos spawn = level.getSharedSpawnPos();
-        BlockPos centerGround = groundAt(level, spawn.getX(), spawn.getZ());
         GraveyardSpawnData data = GraveyardSpawnData.get(level);
+        List<BlockPos> graveyardCenters = SurfaceCryptPlacementData.get(level).centers();
+        if (graveyardCenters.isEmpty()) {
+            return;
+        }
+
         long currentDay = level.getDayTime() / 24000L;
         int spawned = 0;
 
@@ -72,33 +74,39 @@ public class GraveyardUndeadSpawner {
                 continue;
             }
 
-            for (int z : GRAVE_ZS) {
-                for (int x : GRAVE_XS) {
-                    if (isInsideCrypt(x, z)) {
-                        continue;
-                    }
+            for (BlockPos centerGround : graveyardCenters) {
+                if (player.blockPosition().distSqr(centerGround) > 96 * 96) {
+                    continue;
+                }
 
-                    BlockPos graveGround = at(centerGround, x, z);
-                    if (player.blockPosition().distSqr(graveGround) > TRIGGER_RADIUS * TRIGGER_RADIUS) {
-                        continue;
-                    }
+                for (int z : GRAVE_ZS) {
+                    for (int x : GRAVE_XS) {
+                        if (isInsideCrypt(x, z)) {
+                            continue;
+                        }
 
-                    int worldX = graveGround.getX();
-                    int worldZ = graveGround.getZ();
-                    long graveKey = graveKey(worldX, worldZ);
-                    if (!isSpawnCapableGrave(level, centerGround, x, z)
-                            || !isChosenGrave(level, worldX, worldZ)
-                            || !data.canSpawn(graveKey, currentDay)) {
-                        continue;
-                    }
+                        BlockPos graveGround = at(centerGround, x, z);
+                        if (player.blockPosition().distSqr(graveGround) > TRIGGER_RADIUS * TRIGGER_RADIUS) {
+                            continue;
+                        }
 
-                    if (spawnUndead(level, graveGround.above(), level.random)) {
-                        data.markSpawned(graveKey, currentDay);
-                        spawned++;
-                    }
+                        int worldX = graveGround.getX();
+                        int worldZ = graveGround.getZ();
+                        long graveKey = graveKey(worldX, worldZ);
+                        if (!isSpawnCapableGrave(level, centerGround, x, z)
+                                || !isChosenGrave(level, worldX, worldZ)
+                                || !data.canSpawn(graveKey, currentDay)) {
+                            continue;
+                        }
 
-                    if (spawned >= MAX_SPAWNS_PER_SCAN) {
-                        return;
+                        if (spawnUndead(level, graveGround.above(), level.random)) {
+                            data.markSpawned(graveKey, currentDay);
+                            spawned++;
+                        }
+
+                        if (spawned >= MAX_SPAWNS_PER_SCAN) {
+                            return;
+                        }
                     }
                 }
             }
@@ -283,10 +291,6 @@ public class GraveyardUndeadSpawner {
 
     private static BlockPos at(BlockPos centerGround, int x, int z) {
         return new BlockPos(centerGround.getX() + x, centerGround.getY(), centerGround.getZ() + z);
-    }
-
-    private static BlockPos groundAt(ServerLevel level, int x, int z) {
-        return level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, new BlockPos(x, 0, z)).below();
     }
 
     private static final class EmergingUndead {
