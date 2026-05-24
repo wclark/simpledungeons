@@ -55,6 +55,7 @@ public class SimpleDungeons {
 
     private void registerEntityAttributes(EntityAttributeCreationEvent event) {
         event.put(ModEntities.NECROMANCER.get(), NecromancerEntity.createAttributes().build());
+        event.put(ModEntities.FACTORY_ROBOT.get(), FactoryRobotEntity.createAttributes().build());
     }
 
     @SubscribeEvent

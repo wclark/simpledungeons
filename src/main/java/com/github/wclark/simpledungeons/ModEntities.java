@@ -28,6 +28,14 @@ public final class ModEntities {
                     .updateInterval(2)
                     .build(SimpleDungeons.MODID + ":blue_orb"));
 
+    public static final DeferredHolder<EntityType<?>, EntityType<FactoryRobotEntity>> FACTORY_ROBOT = ENTITY_TYPES.register(
+            "factory_robot",
+            () -> EntityType.Builder.of(FactoryRobotEntity::new, MobCategory.CREATURE)
+                    .sized(0.8F, 1.95F)
+                    .eyeHeight(1.62F)
+                    .clientTrackingRange(8)
+                    .build(SimpleDungeons.MODID + ":factory_robot"));
+
     private ModEntities() {
     }
 

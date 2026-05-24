@@ -12,9 +12,10 @@ import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.storage.DimensionDataStorage;
+import net.minecraft.world.phys.AABB;
 
 public final class SpawnSkyIslandStructure {
-    private static final int GENERATION_VERSION = 9;
+    private static final int GENERATION_VERSION = 10;
     private static final int SURFACE_Y = 198;
     private static final int RADIUS_X = 86;
     private static final int RADIUS_Z = 64;
@@ -47,6 +48,7 @@ public final class SpawnSkyIslandStructure {
     }
 
     private static void build(ServerLevel level, BlockPos center, RandomSource random) {
+        clearFactoryRobots(level, center);
         buildIslandTerrain(level, center, level.getSeed());
         placeFactory(level, center, random);
         placeTrees(level, center, random);
@@ -71,6 +73,19 @@ public final class SpawnSkyIslandStructure {
                     }
                 }
             }
+        }
+    }
+
+    private static void clearFactoryRobots(ServerLevel level, BlockPos center) {
+        AABB area = new AABB(
+                center.getX() - RADIUS_X - 16,
+                center.getY() - MAX_THICKNESS - 32,
+                center.getZ() - RADIUS_Z - 16,
+                center.getX() + RADIUS_X + 16,
+                center.getY() + 80,
+                center.getZ() + RADIUS_Z + 16);
+        for (FactoryRobotEntity robot : level.getEntitiesOfClass(FactoryRobotEntity.class, area)) {
+            robot.discard();
         }
     }
 
@@ -379,18 +394,25 @@ public final class SpawnSkyIslandStructure {
     }
 
     private static void placeTrees(ServerLevel level, BlockPos center, RandomSource random) {
-        placeTree(level, center, -72, 34, 8, random);
-        placeTree(level, center, -56, -48, 7, random);
-        placeTree(level, center, 60, 42, 9, random);
-        placeTree(level, center, 72, -28, 8, random);
-        placeTree(level, center, -74, -10, 7, random);
-        placeTree(level, center, 14, 54, 6, random);
+        placeTreeWithRobot(level, center, -72, 34, 8, random);
+        placeTreeWithRobot(level, center, -56, -48, 7, random);
+        placeTreeWithRobot(level, center, 60, 42, 9, random);
+        placeTreeWithRobot(level, center, 72, -28, 8, random);
+        placeTreeWithRobot(level, center, -74, -10, 7, random);
+        placeTreeWithRobot(level, center, 14, 54, 6, random);
     }
 
-    private static void placeTree(ServerLevel level, BlockPos center, int x, int z, int height, RandomSource random) {
+    private static void placeTreeWithRobot(ServerLevel level, BlockPos center, int x, int z, int height, RandomSource random) {
+        BlockPos treeSurface = placeTree(level, center, x, z, height, random);
+        if (treeSurface != null) {
+            placeFactoryRobotNearTree(level, center, x, z, random);
+        }
+    }
+
+    private static BlockPos placeTree(ServerLevel level, BlockPos center, int x, int z, int height, RandomSource random) {
         BlockPos surface = surfaceAt(level, center, x, z);
         if (surface == null) {
-            return;
+            return null;
         }
 
         BlockState log = random.nextBoolean() ? Blocks.OAK_LOG.defaultBlockState() : Blocks.SPRUCE_LOG.defaultBlockState();
@@ -419,6 +441,49 @@ public final class SpawnSkyIslandStructure {
             }
         }
 
+        return surface;
+    }
+
+    private static void placeFactoryRobotNearTree(ServerLevel level, BlockPos center, int treeX, int treeZ, RandomSource random) {
+        int[][] offsets = {
+                {3, 0},
+                {-3, 0},
+                {0, 3},
+                {0, -3},
+                {3, 3},
+                {-3, 3},
+                {3, -3},
+                {-3, -3}
+        };
+        int start = random.nextInt(offsets.length);
+        for (int i = 0; i < offsets.length; i++) {
+            int[] offset = offsets[(start + i) % offsets.length];
+            int robotX = treeX + offset[0];
+            int robotZ = treeZ + offset[1];
+            BlockPos surface = surfaceAt(level, center, robotX, robotZ);
+            if (surface == null || !hasRobotSpace(level, surface)) {
+                continue;
+            }
+
+            FactoryRobotEntity robot = ModEntities.FACTORY_ROBOT.get().create(level);
+            if (robot == null) {
+                return;
+            }
+
+            double x = surface.getX() + 0.5D;
+            double y = surface.getY() + 1.0D;
+            double z = surface.getZ() + 0.5D;
+            robot.moveTo(x, y, z, random.nextFloat() * 360.0F, 0.0F);
+            robot.setNoAi(true);
+            robot.setPersistenceRequired();
+            level.addFreshEntity(robot);
+            return;
+        }
+    }
+
+    private static boolean hasRobotSpace(ServerLevel level, BlockPos surface) {
+        return level.getBlockState(surface.above()).isAir()
+                && level.getBlockState(surface.above(2)).isAir();
     }
 
     private static void placeVegetation(ServerLevel level, BlockPos center, RandomSource random) {
