@@ -13,7 +13,7 @@ import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.storage.DimensionDataStorage;
 
 public final class SpawnSkyIslandStructure {
-    private static final int GENERATION_VERSION = 3;
+    private static final int GENERATION_VERSION = 4;
     private static final int SURFACE_Y = 198;
     private static final int RADIUS_X = 86;
     private static final int RADIUS_Z = 64;
@@ -47,13 +47,14 @@ public final class SpawnSkyIslandStructure {
 
     private static void build(ServerLevel level, BlockPos center, RandomSource random) {
         buildIslandTerrain(level, center, level.getSeed());
+        placeFactory(level, center, random);
         placeTrees(level, center, random);
         placeVegetation(level, center, random);
     }
 
     private static void clearIslandVolume(ServerLevel level, BlockPos center) {
         int minY = center.getY() - MAX_THICKNESS - 24;
-        int maxY = center.getY() + MAX_TOP_VARIATION + 22;
+        int maxY = center.getY() + 48;
         for (int x = -RADIUS_X - 8; x <= RADIUS_X + 8; x++) {
             for (int z = -RADIUS_Z - 8; z <= RADIUS_Z + 8; z++) {
                 double nx = x / (double) (RADIUS_X + 8);
@@ -147,13 +148,199 @@ public final class SpawnSkyIslandStructure {
         return Blocks.STONE.defaultBlockState();
     }
 
+    private static void placeFactory(ServerLevel level, BlockPos center, RandomSource random) {
+        int floorY = center.getY() + 1;
+        clearFactorySite(level, center, floorY);
+        placeFactoryFloor(level, center, floorY, random);
+        placeFactoryWalls(level, center, floorY);
+        placeFactoryRoof(level, center, floorY);
+        placeFactoryStacks(level, center, floorY);
+        placeFactoryDetails(level, center, floorY);
+    }
+
+    private static void clearFactorySite(ServerLevel level, BlockPos center, int floorY) {
+        for (int x = -66; x <= 66; x++) {
+            for (int z = -34; z <= 34; z++) {
+                for (int y = center.getY(); y <= center.getY() + 36; y++) {
+                    BlockPos pos = new BlockPos(center.getX() + x, y, center.getZ() + z);
+                    level.setBlock(pos, y == center.getY() ? Blocks.STONE_BRICKS.defaultBlockState() : Blocks.AIR.defaultBlockState(), 2);
+                }
+
+                level.setBlock(new BlockPos(center.getX() + x, floorY, center.getZ() + z), Blocks.POLISHED_ANDESITE.defaultBlockState(), 2);
+            }
+        }
+    }
+
+    private static void placeFactoryFloor(ServerLevel level, BlockPos center, int floorY, RandomSource random) {
+        for (int x = -58; x <= 58; x++) {
+            for (int z = -26; z <= 26; z++) {
+                BlockState floor = random.nextInt(8) == 0 ? Blocks.SMOOTH_STONE.defaultBlockState() : Blocks.POLISHED_ANDESITE.defaultBlockState();
+                level.setBlock(new BlockPos(center.getX() + x, floorY, center.getZ() + z), floor, 2);
+            }
+        }
+    }
+
+    private static void placeFactoryWalls(ServerLevel level, BlockPos center, int floorY) {
+        int minX = -58;
+        int maxX = 58;
+        int minZ = -26;
+        int maxZ = 26;
+        int wallBottom = floorY + 1;
+        int wallTop = floorY + 14;
+
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = wallBottom; y <= wallTop; y++) {
+                placeFactoryWallBlock(level, center, x, y, minZ);
+                placeFactoryWallBlock(level, center, x, y, maxZ);
+            }
+        }
+
+        for (int z = minZ; z <= maxZ; z++) {
+            for (int y = wallBottom; y <= wallTop; y++) {
+                placeFactoryWallBlock(level, center, minX, y, z);
+                placeFactoryWallBlock(level, center, maxX, y, z);
+            }
+        }
+
+        for (int x = -50; x <= 50; x += 10) {
+            placeTallWindow(level, center, x, maxZ, true, floorY + 4);
+            placeTallWindow(level, center, x, minZ, true, floorY + 4);
+        }
+
+        for (int z = -18; z <= 18; z += 12) {
+            placeTallWindow(level, center, minX, z, false, floorY + 4);
+            placeTallWindow(level, center, maxX, z, false, floorY + 4);
+        }
+
+        placeFrontDoor(level, center, floorY, maxZ);
+        placeLoadingDoor(level, center, floorY, maxX, 10);
+    }
+
+    private static void placeFactoryWallBlock(ServerLevel level, BlockPos center, int x, int y, int z) {
+        boolean pillar = Math.floorMod(x, 10) == 0 || Math.floorMod(z, 10) == 0;
+        BlockState state = pillar ? Blocks.DEEPSLATE_BRICKS.defaultBlockState() : Blocks.BRICKS.defaultBlockState();
+        level.setBlock(new BlockPos(center.getX() + x, y, center.getZ() + z), state, 2);
+    }
+
+    private static void placeTallWindow(ServerLevel level, BlockPos center, int x, int z, boolean wideAlongX, int bottomY) {
+        for (int a = -2; a <= 2; a++) {
+            for (int y = bottomY; y <= bottomY + 5; y++) {
+                int px = wideAlongX ? x + a : x;
+                int pz = wideAlongX ? z : z + a;
+                BlockState pane = y == bottomY + 5 ? Blocks.IRON_BARS.defaultBlockState() : Blocks.LIGHT_BLUE_STAINED_GLASS_PANE.defaultBlockState();
+                level.setBlock(new BlockPos(center.getX() + px, y, center.getZ() + pz), pane, 2);
+            }
+        }
+    }
+
+    private static void placeFrontDoor(ServerLevel level, BlockPos center, int floorY, int z) {
+        for (int x = -4; x <= 4; x++) {
+            for (int y = floorY + 1; y <= floorY + 6; y++) {
+                BlockPos pos = new BlockPos(center.getX() + x, y, center.getZ() + z);
+                if (Math.abs(x) == 4 || y == floorY + 6) {
+                    level.setBlock(pos, Blocks.DEEPSLATE_BRICKS.defaultBlockState(), 2);
+                } else {
+                    level.setBlock(pos, Blocks.AIR.defaultBlockState(), 2);
+                }
+            }
+        }
+
+        for (int x = -6; x <= 6; x++) {
+            level.setBlock(new BlockPos(center.getX() + x, floorY, center.getZ() + z + 1), Blocks.SMOOTH_STONE.defaultBlockState(), 2);
+        }
+    }
+
+    private static void placeLoadingDoor(ServerLevel level, BlockPos center, int floorY, int x, int z) {
+        for (int dz = -4; dz <= 4; dz++) {
+            for (int y = floorY + 1; y <= floorY + 7; y++) {
+                BlockPos pos = new BlockPos(center.getX() + x, y, center.getZ() + z + dz);
+                if (Math.abs(dz) == 4 || y == floorY + 7) {
+                    level.setBlock(pos, Blocks.DEEPSLATE_BRICKS.defaultBlockState(), 2);
+                } else {
+                    level.setBlock(pos, Blocks.IRON_BARS.defaultBlockState(), 2);
+                }
+            }
+        }
+    }
+
+    private static void placeFactoryRoof(ServerLevel level, BlockPos center, int floorY) {
+        int roofBase = floorY + 15;
+        for (int x = -61; x <= 61; x++) {
+            for (int z = -30; z <= 30; z++) {
+                int roofY = roofBase + Math.max(0, 27 - Math.abs(z)) / 5;
+                BlockState roof = Math.floorMod(x + z, 9) == 0
+                        ? Blocks.WEATHERED_CUT_COPPER.defaultBlockState()
+                        : Blocks.OXIDIZED_CUT_COPPER.defaultBlockState();
+                level.setBlock(new BlockPos(center.getX() + x, roofY, center.getZ() + z), roof, 2);
+            }
+        }
+
+        for (int x = -62; x <= 62; x++) {
+            level.setBlock(new BlockPos(center.getX() + x, roofBase + 5, center.getZ()), Blocks.OXIDIZED_CHISELED_COPPER.defaultBlockState(), 2);
+        }
+
+        for (int x : new int[]{-58, 58}) {
+            for (int z = -27; z <= 27; z++) {
+                int roofY = roofBase + Math.max(0, 27 - Math.abs(z)) / 5;
+                for (int y = floorY + 15; y < roofY; y++) {
+                    level.setBlock(new BlockPos(center.getX() + x, y, center.getZ() + z), Blocks.BRICKS.defaultBlockState(), 2);
+                }
+            }
+        }
+    }
+
+    private static void placeFactoryStacks(ServerLevel level, BlockPos center, int floorY) {
+        placeSmokestack(level, center, -48, -18, floorY + 15, 26);
+        placeSmokestack(level, center, -36, -18, floorY + 15, 30);
+        placeSmokestack(level, center, -24, -18, floorY + 15, 24);
+    }
+
+    private static void placeSmokestack(ServerLevel level, BlockPos center, int x, int z, int baseY, int height) {
+        for (int y = baseY; y <= baseY + height; y++) {
+            for (int dx = -2; dx <= 2; dx++) {
+                for (int dz = -2; dz <= 2; dz++) {
+                    boolean wall = Math.abs(dx) == 2 || Math.abs(dz) == 2;
+                    if (!wall) {
+                        level.setBlock(new BlockPos(center.getX() + x + dx, y, center.getZ() + z + dz), Blocks.AIR.defaultBlockState(), 2);
+                        continue;
+                    }
+
+                    BlockState stack = y % 5 == 0 ? Blocks.DEEPSLATE_BRICKS.defaultBlockState() : Blocks.BRICKS.defaultBlockState();
+                    level.setBlock(new BlockPos(center.getX() + x + dx, y, center.getZ() + z + dz), stack, 2);
+                }
+            }
+        }
+
+        int topY = baseY + height + 1;
+        for (int dx = -3; dx <= 3; dx++) {
+            for (int dz = -3; dz <= 3; dz++) {
+                if (Math.abs(dx) == 3 || Math.abs(dz) == 3) {
+                    level.setBlock(new BlockPos(center.getX() + x + dx, topY, center.getZ() + z + dz), Blocks.DEEPSLATE_BRICKS.defaultBlockState(), 2);
+                }
+            }
+        }
+        level.setBlock(new BlockPos(center.getX() + x, topY, center.getZ() + z), Blocks.CAMPFIRE.defaultBlockState(), 2);
+    }
+
+    private static void placeFactoryDetails(ServerLevel level, BlockPos center, int floorY) {
+        for (int x = -54; x <= 54; x += 12) {
+            level.setBlock(new BlockPos(center.getX() + x, floorY + 1, center.getZ() + 24), Blocks.LANTERN.defaultBlockState(), 2);
+            level.setBlock(new BlockPos(center.getX() + x, floorY + 1, center.getZ() - 24), Blocks.LANTERN.defaultBlockState(), 2);
+        }
+
+        for (int z = -18; z <= 18; z += 12) {
+            level.setBlock(new BlockPos(center.getX() - 56, floorY + 1, center.getZ() + z), Blocks.LANTERN.defaultBlockState(), 2);
+            level.setBlock(new BlockPos(center.getX() + 56, floorY + 1, center.getZ() + z), Blocks.LANTERN.defaultBlockState(), 2);
+        }
+    }
+
     private static void placeTrees(ServerLevel level, BlockPos center, RandomSource random) {
-        placeTree(level, center, -64, 18, 8, random);
-        placeTree(level, center, -32, -42, 7, random);
-        placeTree(level, center, 28, 42, 9, random);
-        placeTree(level, center, 58, -12, 8, random);
-        placeTree(level, center, 18, 18, 7, random);
-        placeTree(level, center, -12, 52, 6, random);
+        placeTree(level, center, -72, 34, 8, random);
+        placeTree(level, center, -56, -48, 7, random);
+        placeTree(level, center, 60, 42, 9, random);
+        placeTree(level, center, 72, -28, 8, random);
+        placeTree(level, center, -74, -10, 7, random);
+        placeTree(level, center, 14, 54, 6, random);
     }
 
     private static void placeTree(ServerLevel level, BlockPos center, int x, int z, int height, RandomSource random) {
