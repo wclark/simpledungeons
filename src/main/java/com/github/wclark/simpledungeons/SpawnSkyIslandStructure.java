@@ -14,7 +14,7 @@ import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.storage.DimensionDataStorage;
 
 public final class SpawnSkyIslandStructure {
-    private static final int GENERATION_VERSION = 8;
+    private static final int GENERATION_VERSION = 9;
     private static final int SURFACE_Y = 198;
     private static final int RADIUS_X = 86;
     private static final int RADIUS_Z = 64;
@@ -331,15 +331,13 @@ public final class SpawnSkyIslandStructure {
         }
 
         int beamY = floorY + 14;
-        for (int z : new int[]{-14, -2, 10, 22}) {
+        for (int z : new int[]{-6, 6, 18}) {
             for (int x = -56; x <= 56; x++) {
                 level.setBlock(new BlockPos(center.getX() + x, beamY, center.getZ() + z), Blocks.OXIDIZED_CUT_COPPER.defaultBlockState(), 2);
             }
 
             for (int x = -50; x <= 50; x += 10) {
-                if (!isInsideSmokestackFootprint(x, z)) {
-                    placeCopperBulbFixture(level, center, x, z, floorY + 11);
-                }
+                placeCopperBulbFixture(level, center, x, z, floorY + 11);
             }
         }
 
