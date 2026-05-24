@@ -36,6 +36,14 @@ public final class ModEntities {
                     .clientTrackingRange(8)
                     .build(SimpleDungeons.MODID + ":factory_robot"));
 
+    public static final DeferredHolder<EntityType<?>, EntityType<OverseerEntity>> OVERSEER = ENTITY_TYPES.register(
+            "overseer",
+            () -> EntityType.Builder.of(OverseerEntity::new, MobCategory.CREATURE)
+                    .sized(0.9F, 2.15F)
+                    .eyeHeight(1.85F)
+                    .clientTrackingRange(8)
+                    .build(SimpleDungeons.MODID + ":overseer"));
+
     private ModEntities() {
     }
 

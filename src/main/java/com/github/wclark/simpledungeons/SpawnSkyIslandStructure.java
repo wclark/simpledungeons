@@ -15,7 +15,7 @@ import net.minecraft.world.level.storage.DimensionDataStorage;
 import net.minecraft.world.phys.AABB;
 
 public final class SpawnSkyIslandStructure {
-    private static final int GENERATION_VERSION = 10;
+    private static final int GENERATION_VERSION = 11;
     private static final int SURFACE_Y = 198;
     private static final int RADIUS_X = 86;
     private static final int RADIUS_Z = 64;
@@ -48,7 +48,7 @@ public final class SpawnSkyIslandStructure {
     }
 
     private static void build(ServerLevel level, BlockPos center, RandomSource random) {
-        clearFactoryRobots(level, center);
+        clearSkyFactoryMobs(level, center);
         buildIslandTerrain(level, center, level.getSeed());
         placeFactory(level, center, random);
         placeTrees(level, center, random);
@@ -76,7 +76,7 @@ public final class SpawnSkyIslandStructure {
         }
     }
 
-    private static void clearFactoryRobots(ServerLevel level, BlockPos center) {
+    private static void clearSkyFactoryMobs(ServerLevel level, BlockPos center) {
         AABB area = new AABB(
                 center.getX() - RADIUS_X - 16,
                 center.getY() - MAX_THICKNESS - 32,
@@ -86,6 +86,10 @@ public final class SpawnSkyIslandStructure {
                 center.getZ() + RADIUS_Z + 16);
         for (FactoryRobotEntity robot : level.getEntitiesOfClass(FactoryRobotEntity.class, area)) {
             robot.discard();
+        }
+
+        for (OverseerEntity overseer : level.getEntitiesOfClass(OverseerEntity.class, area)) {
+            overseer.discard();
         }
     }
 
@@ -172,6 +176,19 @@ public final class SpawnSkyIslandStructure {
         placeFactoryRoof(level, center, floorY);
         placeFactoryStacks(level, center, floorY);
         placeFactoryDetails(level, center, floorY);
+        placeOverseer(level, center, floorY);
+    }
+
+    private static void placeOverseer(ServerLevel level, BlockPos center, int floorY) {
+        OverseerEntity overseer = ModEntities.OVERSEER.get().create(level);
+        if (overseer == null) {
+            return;
+        }
+
+        overseer.moveTo(center.getX() + 22.5D, floorY + 1.0D, center.getZ() + 0.5D, 270.0F, 0.0F);
+        overseer.setNoAi(true);
+        overseer.setPersistenceRequired();
+        level.addFreshEntity(overseer);
     }
 
     private static void clearFactorySite(ServerLevel level, BlockPos center, int floorY) {

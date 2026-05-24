@@ -30,12 +30,14 @@ public final class ClientModEvents {
     public static void registerLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
         event.registerLayerDefinition(NecromancerModel.LAYER_LOCATION, NecromancerModel::createBodyLayer);
         event.registerLayerDefinition(FactoryRobotModel.LAYER_LOCATION, FactoryRobotModel::createBodyLayer);
+        event.registerLayerDefinition(OverseerModel.LAYER_LOCATION, OverseerModel::createBodyLayer);
     }
 
     @SubscribeEvent
     public static void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(ModEntities.NECROMANCER.get(), NecromancerRenderer::new);
         event.registerEntityRenderer(ModEntities.FACTORY_ROBOT.get(), FactoryRobotRenderer::new);
+        event.registerEntityRenderer(ModEntities.OVERSEER.get(), OverseerRenderer::new);
         event.registerEntityRenderer(ModEntities.BLUE_ORB.get(), context -> new ThrownItemRenderer<>(context, 1.1F, true));
     }
 }
