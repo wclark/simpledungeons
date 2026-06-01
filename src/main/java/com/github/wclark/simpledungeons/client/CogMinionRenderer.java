@@ -11,7 +11,7 @@ import net.neoforged.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class CogMinionRenderer extends MobRenderer<CogMinionEntity, CogMinionModel> {
-    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(SimpleDungeons.MODID, "textures/entity/factory_robot.png");
+    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(SimpleDungeons.MODID, "textures/entity/cog_minion_texture.png");
 
     public CogMinionRenderer(EntityRendererProvider.Context context) {
         super(context, new CogMinionModel(context.bakeLayer(CogMinionModel.LAYER_LOCATION)), 0.35F);
