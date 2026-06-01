@@ -103,5 +103,48 @@ public class CogMinionModel extends EntityModel<CogMinionEntity> {
     @Override
     public void renderToBuffer(PoseStack poseStack, VertexConsumer buffer, int packedLight, int packedOverlay, int color) {
         main.render(poseStack, buffer, packedLight, packedOverlay, color);
+        poseStack.pushPose();
+        main.translateAndRotate(poseStack);
+        renderFacePanel(poseStack.last(), buffer, packedLight, packedOverlay, color);
+        poseStack.popPose();
+    }
+
+    private static void renderFacePanel(PoseStack.Pose pose, VertexConsumer buffer, int packedLight, int packedOverlay, int color) {
+        float x0 = -2.72F;
+        float x1 = 3.4F;
+        float y0 = -23.8F;
+        float y1 = -18.36F;
+        float z = -2.78F;
+        float u0 = 52.0F / 128.0F;
+        float u1 = 61.0F / 128.0F;
+        float v0 = 31.0F / 128.0F;
+        float v1 = 39.0F / 128.0F;
+
+        addVertex(pose, buffer, x1, y0, z, u0, v0, packedLight, packedOverlay, color, 0.0F, 0.0F, -1.0F);
+        addVertex(pose, buffer, x0, y0, z, u1, v0, packedLight, packedOverlay, color, 0.0F, 0.0F, -1.0F);
+        addVertex(pose, buffer, x0, y1, z, u1, v1, packedLight, packedOverlay, color, 0.0F, 0.0F, -1.0F);
+        addVertex(pose, buffer, x1, y1, z, u0, v1, packedLight, packedOverlay, color, 0.0F, 0.0F, -1.0F);
+    }
+
+    private static void addVertex(
+            PoseStack.Pose pose,
+            VertexConsumer buffer,
+            float x,
+            float y,
+            float z,
+            float u,
+            float v,
+            int packedLight,
+            int packedOverlay,
+            int color,
+            float normalX,
+            float normalY,
+            float normalZ) {
+        buffer.addVertex(pose, x / 16.0F, y / 16.0F, z / 16.0F)
+                .setColor(color)
+                .setUv(u, v)
+                .setOverlay(packedOverlay)
+                .setLight(packedLight)
+                .setNormal(pose, normalX, normalY, normalZ);
     }
 }

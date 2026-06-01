@@ -47,8 +47,8 @@ public final class ModEntities {
     public static final DeferredHolder<EntityType<?>, EntityType<CogMinionEntity>> COG_MINION = ENTITY_TYPES.register(
             "cog_minion",
             () -> EntityType.Builder.of(CogMinionEntity::new, MobCategory.CREATURE)
-                    .sized(0.75F, 1.35F)
-                    .eyeHeight(1.12F)
+                    .sized(0.9F, 1.8F)
+                    .eyeHeight(1.5F)
                     .clientTrackingRange(8)
                     .build(SimpleDungeons.MODID + ":cog_minion"));
 
