@@ -31,6 +31,7 @@ public final class ClientModEvents {
         event.registerLayerDefinition(NecromancerModel.LAYER_LOCATION, NecromancerModel::createBodyLayer);
         event.registerLayerDefinition(FactoryRobotModel.LAYER_LOCATION, FactoryRobotModel::createBodyLayer);
         event.registerLayerDefinition(OverseerModel.LAYER_LOCATION, OverseerModel::createBodyLayer);
+        event.registerLayerDefinition(CogMinionModel.LAYER_LOCATION, CogMinionModel::createBodyLayer);
     }
 
     @SubscribeEvent
@@ -38,6 +39,7 @@ public final class ClientModEvents {
         event.registerEntityRenderer(ModEntities.NECROMANCER.get(), NecromancerRenderer::new);
         event.registerEntityRenderer(ModEntities.FACTORY_ROBOT.get(), FactoryRobotRenderer::new);
         event.registerEntityRenderer(ModEntities.OVERSEER.get(), OverseerRenderer::new);
+        event.registerEntityRenderer(ModEntities.COG_MINION.get(), CogMinionRenderer::new);
         event.registerEntityRenderer(ModEntities.BLUE_ORB.get(), context -> new ThrownItemRenderer<>(context, 1.1F, true));
     }
 }

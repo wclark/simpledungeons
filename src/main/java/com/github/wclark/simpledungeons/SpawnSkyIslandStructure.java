@@ -15,7 +15,7 @@ import net.minecraft.world.level.storage.DimensionDataStorage;
 import net.minecraft.world.phys.AABB;
 
 public final class SpawnSkyIslandStructure {
-    private static final int GENERATION_VERSION = 11;
+    private static final int GENERATION_VERSION = 12;
     private static final int SURFACE_Y = 198;
     private static final int RADIUS_X = 86;
     private static final int RADIUS_Z = 64;
@@ -90,6 +90,10 @@ public final class SpawnSkyIslandStructure {
 
         for (OverseerEntity overseer : level.getEntitiesOfClass(OverseerEntity.class, area)) {
             overseer.discard();
+        }
+
+        for (CogMinionEntity cogMinion : level.getEntitiesOfClass(CogMinionEntity.class, area)) {
+            cogMinion.discard();
         }
     }
 
@@ -177,6 +181,7 @@ public final class SpawnSkyIslandStructure {
         placeFactoryStacks(level, center, floorY);
         placeFactoryDetails(level, center, floorY);
         placeOverseer(level, center, floorY);
+        placeCogMinions(level, center, floorY, random);
     }
 
     private static void placeOverseer(ServerLevel level, BlockPos center, int floorY) {
@@ -189,6 +194,34 @@ public final class SpawnSkyIslandStructure {
         overseer.setNoAi(true);
         overseer.setPersistenceRequired();
         level.addFreshEntity(overseer);
+    }
+
+    private static void placeCogMinions(ServerLevel level, BlockPos center, int floorY, RandomSource random) {
+        int count = 10 + random.nextInt(6);
+        int placed = 0;
+        for (int attempt = 0; attempt < 120 && placed < count; attempt++) {
+            int x = random.nextInt(91) - 45;
+            int z = random.nextInt(35) - 17;
+            if (isInsideSmokestackFootprint(x, z) || Math.abs(x - 22) < 7 && Math.abs(z) < 7) {
+                continue;
+            }
+
+            BlockPos floor = new BlockPos(center.getX() + x, floorY, center.getZ() + z);
+            if (!hasCogMinionSpace(level, floor)) {
+                continue;
+            }
+
+            CogMinionEntity cogMinion = ModEntities.COG_MINION.get().create(level);
+            if (cogMinion == null) {
+                return;
+            }
+
+            cogMinion.moveTo(floor.getX() + 0.5D, floorY + 1.0D, floor.getZ() + 0.5D, random.nextFloat() * 360.0F, 0.0F);
+            cogMinion.setNoAi(true);
+            cogMinion.setPersistenceRequired();
+            level.addFreshEntity(cogMinion);
+            placed++;
+        }
     }
 
     private static void clearFactorySite(ServerLevel level, BlockPos center, int floorY) {
@@ -501,6 +534,24 @@ public final class SpawnSkyIslandStructure {
     private static boolean hasRobotSpace(ServerLevel level, BlockPos surface) {
         return level.getBlockState(surface.above()).isAir()
                 && level.getBlockState(surface.above(2)).isAir();
+    }
+
+    private static boolean hasCogMinionSpace(ServerLevel level, BlockPos floor) {
+        if (level.getBlockState(floor).isAir()
+                || !level.getBlockState(floor.above()).isAir()
+                || !level.getBlockState(floor.above(2)).isAir()) {
+            return false;
+        }
+
+        AABB area = new AABB(
+                floor.getX() - 1.25D,
+                floor.getY(),
+                floor.getZ() - 1.25D,
+                floor.getX() + 2.25D,
+                floor.getY() + 2.25D,
+                floor.getZ() + 2.25D);
+        return level.getEntitiesOfClass(CogMinionEntity.class, area).isEmpty()
+                && level.getEntitiesOfClass(OverseerEntity.class, area).isEmpty();
     }
 
     private static void placeVegetation(ServerLevel level, BlockPos center, RandomSource random) {
