@@ -138,9 +138,9 @@ public class CogMinionModel extends EntityModel<CogMinionEntity> {
         float z0 = (cube.originZ() - cube.pivotZ()) * MODEL_SCALE;
         float z1 = (cube.originZ() + cube.sizeZ() - cube.pivotZ()) * MODEL_SCALE;
 
-        float w = cube.sizeX();
-        float h = cube.sizeY();
-        float d = cube.sizeZ();
+        float w = uvSpan(cube.sizeX());
+        float h = uvSpan(cube.sizeY());
+        float d = uvSpan(cube.sizeZ());
         float u = cube.u();
         float v = cube.v();
         float u0 = u;
@@ -246,6 +246,10 @@ public class CogMinionModel extends EntityModel<CogMinionEntity> {
 
     private static float rad(float degrees) {
         return degrees * DEG_TO_RAD;
+    }
+
+    private static float uvSpan(float size) {
+        return Math.max(1.0F, (float) Math.floor(size));
     }
 
     private record Bone(int parent, float pivotX, float pivotY, float pivotZ, float rx, float ry, float rz) {
