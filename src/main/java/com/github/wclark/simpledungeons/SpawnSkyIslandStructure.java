@@ -1,13 +1,19 @@
 package com.github.wclark.simpledungeons;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.AbstractFurnaceBlock;
 import net.minecraft.world.level.block.CopperBulbBlock;
+import net.minecraft.world.level.block.EndRodBlock;
+import net.minecraft.world.level.block.HopperBlock;
 import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.saveddata.SavedData;
@@ -15,12 +21,18 @@ import net.minecraft.world.level.storage.DimensionDataStorage;
 import net.minecraft.world.phys.AABB;
 
 public final class SpawnSkyIslandStructure {
-    private static final int GENERATION_VERSION = 12;
+    private static final int GENERATION_VERSION = 13;
     private static final int SURFACE_Y = 198;
     private static final int RADIUS_X = 86;
     private static final int RADIUS_Z = 64;
     private static final int MAX_TOP_VARIATION = 3;
     private static final int MAX_THICKNESS = 36;
+    static final int CONVEYOR_Z = -12;
+    static final int CONVEYOR_START_X = 42;
+    static final int CONVEYOR_END_X = -50;
+    static final int CONVEYOR_FURNACE_INPUT_X = 9;
+    static final int CONVEYOR_FURNACE_OUTPUT_X = -7;
+    static final int CONVEYOR_COLLECTOR_X = -48;
 
     private SpawnSkyIslandStructure() {
     }
@@ -94,6 +106,10 @@ public final class SpawnSkyIslandStructure {
 
         for (CogMinionEntity cogMinion : level.getEntitiesOfClass(CogMinionEntity.class, area)) {
             cogMinion.discard();
+        }
+
+        for (ItemEntity item : level.getEntitiesOfClass(ItemEntity.class, area, FactoryConveyorSystem::isConveyorItem)) {
+            item.discard();
         }
     }
 
@@ -180,8 +196,18 @@ public final class SpawnSkyIslandStructure {
         placeFactoryRoof(level, center, floorY);
         placeFactoryStacks(level, center, floorY);
         placeFactoryDetails(level, center, floorY);
+        placeFactoryConveyor(level, center, floorY);
         placeOverseer(level, center, floorY);
-        placeCogMinions(level, center, floorY, random);
+        placeCogMinions(level, center, floorY);
+    }
+
+    public static BlockPos currentCenter(ServerLevel level) {
+        if (level.dimension() != Level.OVERWORLD) {
+            return null;
+        }
+
+        SkyIslandData data = SkyIslandData.get(level);
+        return data.isCurrent() && data.center != null ? data.center : null;
     }
 
     private static void placeOverseer(ServerLevel level, BlockPos center, int floorY) {
@@ -196,32 +222,31 @@ public final class SpawnSkyIslandStructure {
         level.addFreshEntity(overseer);
     }
 
-    private static void placeCogMinions(ServerLevel level, BlockPos center, int floorY, RandomSource random) {
-        int count = 10 + random.nextInt(6);
-        int placed = 0;
-        for (int attempt = 0; attempt < 120 && placed < count; attempt++) {
-            int x = random.nextInt(91) - 45;
-            int z = random.nextInt(35) - 17;
-            if (isInsideSmokestackFootprint(x, z) || Math.abs(x - 22) < 7 && Math.abs(z) < 7) {
-                continue;
+    private static void placeCogMinions(ServerLevel level, BlockPos center, int floorY) {
+        int[] workerX = {40, 32, 24, 16, 10, -14, -22, -30, -38, -42};
+        for (int i = 0; i < workerX.length; i++) {
+            int side = i % 2 == 0 ? 4 : -4;
+            int z = CONVEYOR_Z + side;
+            float yaw = side > 0 ? 180.0F : 0.0F;
+            BlockPos floor = new BlockPos(center.getX() + workerX[i], floorY, center.getZ() + z);
+            if (hasCogMinionSpace(level, floor)) {
+                placeWorkerBot(level, floor, floorY, yaw);
             }
-
-            BlockPos floor = new BlockPos(center.getX() + x, floorY, center.getZ() + z);
-            if (!hasCogMinionSpace(level, floor)) {
-                continue;
-            }
-
-            CogMinionEntity cogMinion = ModEntities.COG_MINION.get().create(level);
-            if (cogMinion == null) {
-                return;
-            }
-
-            cogMinion.moveTo(floor.getX() + 0.5D, floorY + 1.0D, floor.getZ() + 0.5D, random.nextFloat() * 360.0F, 0.0F);
-            cogMinion.setNoAi(true);
-            cogMinion.setPersistenceRequired();
-            level.addFreshEntity(cogMinion);
-            placed++;
         }
+    }
+
+    private static void placeWorkerBot(ServerLevel level, BlockPos floor, int floorY, float yaw) {
+        CogMinionEntity cogMinion = ModEntities.COG_MINION.get().create(level);
+        if (cogMinion == null) {
+            return;
+        }
+
+        cogMinion.moveTo(floor.getX() + 0.5D, floorY + 1.0D, floor.getZ() + 0.5D, yaw, 0.0F);
+        cogMinion.setNoAi(true);
+        cogMinion.setPersistenceRequired();
+        cogMinion.setCustomName(Component.literal("Worker Bot"));
+        cogMinion.setCustomNameVisible(false);
+        level.addFreshEntity(cogMinion);
     }
 
     private static void clearFactorySite(ServerLevel level, BlockPos center, int floorY) {
@@ -235,6 +260,168 @@ public final class SpawnSkyIslandStructure {
                 level.setBlock(new BlockPos(center.getX() + x, floorY, center.getZ() + z), Blocks.POLISHED_ANDESITE.defaultBlockState(), 2);
             }
         }
+    }
+
+    private static void placeFactoryConveyor(ServerLevel level, BlockPos center, int floorY) {
+        placeConveyorBelt(level, center, floorY);
+        placeOreGenerator(level, center, floorY);
+        placeSmeltingFurnace(level, center, floorY);
+        placeLavaCollector(level, center, floorY);
+    }
+
+    private static void placeConveyorBelt(ServerLevel level, BlockPos center, int floorY) {
+        BlockState belt = Blocks.POLISHED_BLACKSTONE_BRICKS.defaultBlockState();
+        BlockState beltTop = Blocks.POLISHED_BLACKSTONE_PRESSURE_PLATE.defaultBlockState();
+        for (int x = CONVEYOR_END_X; x <= CONVEYOR_START_X; x++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                level.setBlock(factoryPos(center, x, floorY + 1, CONVEYOR_Z + dz), belt, 2);
+                level.setBlock(factoryPos(center, x, floorY + 2, CONVEYOR_Z + dz), beltTop, 2);
+            }
+
+            if (Math.floorMod(x, 6) == 0) {
+                level.setBlock(factoryPos(center, x, floorY + 1, CONVEYOR_Z - 2), Blocks.POLISHED_BLACKSTONE_WALL.defaultBlockState(), 2);
+                level.setBlock(factoryPos(center, x, floorY + 1, CONVEYOR_Z + 2), Blocks.POLISHED_BLACKSTONE_WALL.defaultBlockState(), 2);
+            }
+        }
+    }
+
+    private static void placeOreGenerator(ServerLevel level, BlockPos center, int floorY) {
+        int baseX = CONVEYOR_START_X + 5;
+        int minX = baseX - 3;
+        int maxX = baseX + 4;
+        int minZ = CONVEYOR_Z - 4;
+        int maxZ = CONVEYOR_Z + 4;
+        for (int x = minX; x <= maxX; x++) {
+            for (int z = minZ; z <= maxZ; z++) {
+                for (int y = floorY + 1; y <= floorY + 4; y++) {
+                    boolean wall = x == minX || x == maxX || z == minZ || z == maxZ || y == floorY + 1;
+                    BlockState state = Math.floorMod(x + z + y, 4) == 0
+                            ? Blocks.DEEPSLATE_BRICKS.defaultBlockState()
+                            : Blocks.POLISHED_BLACKSTONE_BRICKS.defaultBlockState();
+                    level.setBlock(factoryPos(center, x, y, z), wall ? state : Blocks.AIR.defaultBlockState(), 2);
+                }
+            }
+        }
+
+        for (int x = minX - 1; x <= minX; x++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                level.setBlock(factoryPos(center, x, floorY + 2, CONVEYOR_Z + dz), Blocks.AIR.defaultBlockState(), 2);
+                level.setBlock(factoryPos(center, x, floorY + 3, CONVEYOR_Z + dz), Blocks.AIR.defaultBlockState(), 2);
+            }
+        }
+
+        int towerX = baseX + 2;
+        for (int y = floorY + 5; y <= floorY + 11; y++) {
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dz = -1; dz <= 1; dz++) {
+                    BlockPos pos = factoryPos(center, towerX + dx, y, CONVEYOR_Z + dz);
+                    if (dx == 0 && dz == 0) {
+                        level.setBlock(pos, Blocks.END_ROD.defaultBlockState().setValue(EndRodBlock.FACING, Direction.UP), 2);
+                    } else {
+                        level.setBlock(pos, Blocks.LIGHT_BLUE_STAINED_GLASS.defaultBlockState(), 2);
+                    }
+                }
+            }
+        }
+
+        for (int dx = -2; dx <= 2; dx++) {
+            for (int dz = -2; dz <= 2; dz++) {
+                BlockState cap = Math.abs(dx) == 2 || Math.abs(dz) == 2
+                        ? Blocks.WAXED_CUT_COPPER.defaultBlockState()
+                        : litCopperBulb();
+                level.setBlock(factoryPos(center, towerX + dx, floorY + 12, CONVEYOR_Z + dz), cap, 2);
+            }
+        }
+    }
+
+    private static void placeSmeltingFurnace(ServerLevel level, BlockPos center, int floorY) {
+        int minX = -5;
+        int maxX = 9;
+        int minZ = CONVEYOR_Z - 5;
+        int maxZ = CONVEYOR_Z + 5;
+        int baseY = floorY + 1;
+        int topY = floorY + 8;
+        for (int x = minX; x <= maxX; x++) {
+            for (int z = minZ; z <= maxZ; z++) {
+                for (int y = baseY; y <= topY; y++) {
+                    boolean tunnel = z >= CONVEYOR_Z - 1 && z <= CONVEYOR_Z + 1 && y >= floorY + 2 && y <= floorY + 4;
+                    if (tunnel) {
+                        level.setBlock(factoryPos(center, x, y, z), Blocks.AIR.defaultBlockState(), 2);
+                        continue;
+                    }
+
+                    boolean shell = x == minX || x == maxX || z == minZ || z == maxZ || y == baseY || y == topY;
+                    if (!shell) {
+                        level.setBlock(factoryPos(center, x, y, z), Blocks.AIR.defaultBlockState(), 2);
+                        continue;
+                    }
+
+                    BlockState stone = Math.floorMod(x + z + y, 5) == 0
+                            ? Blocks.COBBLESTONE.defaultBlockState()
+                            : Blocks.STONE_BRICKS.defaultBlockState();
+                    level.setBlock(factoryPos(center, x, y, z), stone, 2);
+                }
+            }
+        }
+
+        BlockState inputFurnace = litFurnace(Direction.EAST);
+        BlockState outputFurnace = litFurnace(Direction.WEST);
+        for (int z : new int[]{CONVEYOR_Z - 2, CONVEYOR_Z, CONVEYOR_Z + 2}) {
+            level.setBlock(factoryPos(center, maxX, floorY + 2, z), inputFurnace, 2);
+            level.setBlock(factoryPos(center, maxX, floorY + 3, z), inputFurnace, 2);
+            level.setBlock(factoryPos(center, minX, floorY + 2, z), outputFurnace, 2);
+            level.setBlock(factoryPos(center, minX, floorY + 3, z), outputFurnace, 2);
+        }
+
+        for (int y = floorY + 9; y <= floorY + 14; y++) {
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dz = -1; dz <= 1; dz++) {
+                    boolean wall = Math.abs(dx) == 1 || Math.abs(dz) == 1;
+                    level.setBlock(factoryPos(center, 2 + dx, y, CONVEYOR_Z + dz),
+                            wall ? Blocks.COBBLESTONE.defaultBlockState() : Blocks.AIR.defaultBlockState(), 2);
+                }
+            }
+        }
+    }
+
+    private static BlockState litFurnace(Direction direction) {
+        return Blocks.FURNACE.defaultBlockState()
+                .setValue(AbstractFurnaceBlock.FACING, direction)
+                .setValue(AbstractFurnaceBlock.LIT, Boolean.TRUE);
+    }
+
+    private static void placeLavaCollector(ServerLevel level, BlockPos center, int floorY) {
+        int minX = CONVEYOR_END_X - 6;
+        int maxX = CONVEYOR_END_X - 1;
+        int minZ = CONVEYOR_Z - 4;
+        int maxZ = CONVEYOR_Z + 4;
+        for (int x = minX; x <= maxX; x++) {
+            for (int z = minZ; z <= maxZ; z++) {
+                boolean rim = x == minX || x == maxX || z == minZ || z == maxZ;
+                level.setBlock(factoryPos(center, x, floorY, z), Blocks.POLISHED_BASALT.defaultBlockState(), 2);
+                level.setBlock(factoryPos(center, x, floorY + 1, z), rim ? Blocks.BASALT.defaultBlockState() : Blocks.LAVA.defaultBlockState(), 2);
+                level.setBlock(factoryPos(center, x, floorY + 2, z), Blocks.AIR.defaultBlockState(), 2);
+            }
+        }
+
+        int pumpX = CONVEYOR_END_X - 2;
+        level.setBlock(factoryPos(center, CONVEYOR_COLLECTOR_X, floorY + 2, CONVEYOR_Z),
+                Blocks.HOPPER.defaultBlockState().setValue(HopperBlock.FACING, Direction.WEST), 2);
+        for (int y = floorY + 2; y <= floorY + 7; y++) {
+            level.setBlock(factoryPos(center, pumpX, y, CONVEYOR_Z), Blocks.CHAIN.defaultBlockState(), 2);
+        }
+
+        for (int x = pumpX; x <= CONVEYOR_COLLECTOR_X; x++) {
+            level.setBlock(factoryPos(center, x, floorY + 7, CONVEYOR_Z), Blocks.POLISHED_BASALT.defaultBlockState(), 2);
+        }
+
+        level.setBlock(factoryPos(center, pumpX, floorY + 8, CONVEYOR_Z), litCopperBulb(), 2);
+        level.setBlock(factoryPos(center, pumpX, floorY + 1, CONVEYOR_Z - 1), Blocks.CAULDRON.defaultBlockState(), 2);
+        level.setBlock(factoryPos(center, pumpX, floorY + 1, CONVEYOR_Z + 1), Blocks.CAULDRON.defaultBlockState(), 2);
+    }
+
+    private static BlockPos factoryPos(BlockPos center, int x, int y, int z) {
+        return new BlockPos(center.getX() + x, y, center.getZ() + z);
     }
 
     private static void placeFactoryFloor(ServerLevel level, BlockPos center, int floorY, RandomSource random) {

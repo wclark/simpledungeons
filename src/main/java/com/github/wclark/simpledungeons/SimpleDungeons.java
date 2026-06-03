@@ -32,6 +32,7 @@ public class SimpleDungeons {
         NeoForge.EVENT_BUS.register(new GraveyardUndeadSpawner());
         NeoForge.EVENT_BUS.register(new SurfaceCryptPlacementManager());
         NeoForge.EVENT_BUS.register(new UndeadSummons());
+        NeoForge.EVENT_BUS.register(new FactoryConveyorSystem());
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }
 
